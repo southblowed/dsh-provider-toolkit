@@ -59,6 +59,61 @@ only needs a page refresh.
 > a symlinked package to its real path, where this package's dependencies
 > (`@deepseek-ai/schemastery` / `undici` / `zod`) cannot be resolved.
 
+## Installing into DSH Desktop
+
+The desktop app and `dsh web` share the profile **name** (`web`) but not the data directory —
+the desktop's DSH_HOME lives inside the app's own user-data folder, so "install for the desktop"
+means pointing the same command at it:
+
+| Platform | Desktop DSH_HOME |
+|---|---|
+| Windows | `%APPDATA%\dsh-desktop\harness` |
+| macOS | `~/Library/Application Support/dsh-desktop/harness` |
+| Linux | `~/.config/dsh-desktop/harness` |
+
+**Option 1 (recommended, online)**: install the standalone CLI once
+(`npm i -g @deepseek-ai/dsh` — only used for plugin management), then:
+
+```powershell
+# Windows PowerShell
+$env:DSH_HOME = "$env:APPDATA\dsh-desktop\harness"
+dsh plugin --profile web add github:southblowed/dsh-provider-toolkit
+```
+
+```bash
+# macOS
+export DSH_HOME="$HOME/Library/Application Support/dsh-desktop/harness"
+# Linux
+export DSH_HOME="$HOME/.config/dsh-desktop/harness"
+dsh plugin --profile web add github:southblowed/dsh-provider-toolkit
+```
+
+**Option 2 (offline)**: clone this repository, then run the installer with `-DshHome` aimed at
+the desktop data directory:
+
+```powershell
+pwsh -File .\install.ps1 -DshHome "$env:APPDATA\dsh-desktop\harness"
+```
+
+The installer copies the package, registers the bundle, and backfills the **dependency closure**
+(direct + transitive + peer dependencies) from any other local DSH installation (the CLI's npm
+install, the CLI web profile, or the desktop's own bundled modules). One hard rule: **the undici
+major must match the host Node's built-in `fetch` generation** (DSH runs Node 24 → undici 7; a
+cross-generation dispatcher handed to the built-in fetch hangs every request it governs —
+measured). The installer automatically skips version-incompatible sources; if no undici 7
+exists on the machine, follow the script's hint and install it once online.
+
+**Option 3 (market)**: the desktop ships the dshmarket plugin market; once this package is
+registered in a community index (awesome-dsh-plugin / dsh-web-ui community.json), it becomes a
+one-click install there.
+
+After installing, **fully quit and restart the desktop app** (the in-app "一键重启 / restart
+Harness" works too), then open Settings → Models — the panel sits at the page bottom.
+
+> Note: the desktop and `dsh web` keep **two independent configurations** (separate
+> `settings.yaml` and profiles). Provider API keys and anything this plugin writes must be
+> configured again on the desktop side.
+
 ## Usage
 
 Settings → Models → the "Provider probing & network policy" panel at the bottom:

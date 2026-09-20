@@ -55,6 +55,53 @@ dsh plugin --profile web add link:D:\src\dsh-provider-toolkit
 > 复制而不是 `pnpm link`：node 会把软链包解析成真实路径，从工作区解析不到本包依赖的
 > `@deepseek-ai/schemastery` / `undici` / `zod`，插件会在启动时加载失败。
 
+## 在桌面版（DSH Desktop）安装
+
+桌面版与 `dsh web` 的 profile **同名（都叫 `web`）但数据目录独立**——桌面版的 DSH_HOME 是应用自己的
+数据目录，所以"给桌面版装" = 把同一条命令指向它：
+
+| 平台 | 桌面版 DSH_HOME |
+|---|---|
+| Windows | `%APPDATA%\dsh-desktop\harness` |
+| macOS | `~/Library/Application Support/dsh-desktop/harness` |
+| Linux | `~/.config/dsh-desktop/harness` |
+
+**方式一（推荐，可联网）**：先装一次独立 CLI（`npm i -g @deepseek-ai/dsh`，只用于插件管理，不影响桌面版本身），然后：
+
+```powershell
+# Windows PowerShell
+$env:DSH_HOME = "$env:APPDATA\dsh-desktop\harness"
+dsh plugin --profile web add github:southblowed/dsh-provider-toolkit
+```
+
+```bash
+# macOS
+export DSH_HOME="$HOME/Library/Application Support/dsh-desktop/harness"
+# Linux
+export DSH_HOME="$HOME/.config/dsh-desktop/harness"
+dsh plugin --profile web add github:southblowed/dsh-provider-toolkit
+```
+
+**方式二（离线）**：克隆本仓库后运行安装脚本，用 `-DshHome` 指向桌面版数据目录：
+
+```powershell
+pwsh -File .\install.ps1 -DshHome "$env:APPDATA\dsh-desktop\harness"
+```
+
+脚本会复制包本体、登记 bundle，并自动从本机其他 DSH 安装位置（CLI 的 npm 安装、CLI 的 web profile、
+桌面版自带依赖）**按依赖闭包**补齐缺失的依赖。有一个硬约束：**undici 大版本必须与宿主 Node 自带
+`fetch` 的 undici 同代**（DSH 用 Node 24 → undici 7；跨代 dispatcher 传给内置 fetch 会让请求永久挂起，
+已实测）。脚本会自动跳过版本不符的来源；如果本机找不到 undici 7，按脚本提示联网装一次即可。
+
+**方式三（插件市场）**：桌面版内置 dshmarket 插件市场；把本包登记进社区索引（awesome-dsh-plugin /
+dsh-web-ui community.json）后，可在市场里一键安装。
+
+装完后**完全退出并重启桌面版**（桌面版设置里的「一键重启」也可以），打开 设置 → 模型，页面底部即是
+本插件的面板。
+
+> 注意：桌面版与 `dsh web` 是**两套独立配置**（各自的 `settings.yaml` 与 profile）。在桌面版里需要
+> 重新配置厂商的 API Key；本插件写入的档位/网络策略也只存在于所装的这一侧。
+
 ## 用法
 
 设置 → Models → 页面底部「厂商探测与网络策略」，展开某个厂商：
