@@ -1,0 +1,6 @@
+# Pairing record for dsh-provider-toolkit READMEs.
+pair:
+  en: README.md
+  zh: README.zh.md
+  updatedAt: 2026-09-18
+  check: passing

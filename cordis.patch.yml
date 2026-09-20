@@ -1,0 +1,13 @@
+# bundle patch for dsh-provider-toolkit: inserts its plugin row into the web
+# profile roster. Applied as a profile bundle layer (the `dsh.bundle.patch`
+# manifest field).
+#
+# The row is a bare plugin by package name: the node half (exports ".") owns
+# the `dsh-provider-toolkit` settings namespace, the outbound fetch policy, and
+# the `providerToolkit` Remote service; the `dsh.client` declaration in
+# package.json makes the browser half (exports "./client") load in the web GUI.
+# The `./typert` export is picked up by the typert loader and registers the two
+# strict Remote invocations (overview, probe).
+- insert:
+    - id: provider-toolkit
+      name: dsh-provider-toolkit

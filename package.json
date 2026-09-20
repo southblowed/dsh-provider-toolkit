@@ -1,0 +1,58 @@
+{
+  "name": "dsh-provider-toolkit",
+  "version": "0.1.0",
+  "description": "Endpoint probing (context/output capacity and reasoning levels) and per-provider outbound network policy (skip proxy, TLS verification, custom certificate) for custom pi-ai providers on the DSH Models settings page. · DSH 自定义厂商插件：端点探测（上下文/输出/思考档位）与逐厂商出站网络策略（绕代理/TLS 校验/自定义证书）。",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./typert": "./typert.host.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "typert.host.js",
+    "cordis.patch.yml",
+    "install.ps1",
+    "test"
+  ],
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "pi-ai",
+    "models",
+    "reasoning",
+    "proxy",
+    "tls"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/southblowed/dsh-provider-toolkit.git"
+  },
+  "dsh": {
+    "engines": {
+      "dsh": ">=0.1.5-rc.1"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": []
+    }
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-typert-protocol": "0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.2",
+    "undici": "^7.29.1",
+    "zod": "^4.6.5"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "license": "MIT"
+}
