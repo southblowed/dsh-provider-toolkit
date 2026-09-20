@@ -1,5 +1,7 @@
 # dsh-provider-toolkit
 
+**English** | [简体中文](README.zh.md)
+
 **Endpoint probing + outbound network policy for custom pi-ai providers.** A DSH Web plugin
 (host half + client half) that adds a panel at the bottom of Settings → Models, covering the
 four things the built-in "add model" flow lacks for custom providers:

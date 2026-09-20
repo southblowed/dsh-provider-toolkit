@@ -1,5 +1,7 @@
 # dsh-provider-toolkit
 
+[English](README.md) | **简体中文**
+
 **自定义厂商的端点探测 + 出站网络策略。** 一个 DSH Web 插件（host half + client half），在
 设置 → Models 页底部增加一个面板，解决内置「模型添加」流程对自定义厂商缺少的四件事：
 
