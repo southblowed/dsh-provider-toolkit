@@ -204,6 +204,9 @@ test('every host endpoint is called with the exact declared wire shape', async (
   assert.equal(JSON.stringify(events.calls[0]), JSON.stringify(['/api', 'providerToolkit/overview', { args: {} }, undefined]))
   assert.equal(JSON.stringify(events.calls[1]), JSON.stringify(['/api', 'providerToolkit/probe', { args: { request: { route: 'acme' } } }, undefined]))
   assert.equal(JSON.stringify(events.calls[2]), JSON.stringify(['/api', 'providerToolkit/verifyReasoning', { args: { request: { route: 'acme' } } }, undefined]))
+  // a partial re-test carries the model list; omitting it means "every configured model"
+  await face.callVerify('acme', ['m1', 'm2'])
+  assert.equal(JSON.stringify(events.calls[3]), JSON.stringify(['/api', 'providerToolkit/verifyReasoning', { args: { request: { route: 'acme', models: ['m1', 'm2'] } } }, undefined]))
 })
 
 //#region the write policy: an unverified guess must never reach settings on its own
@@ -657,27 +660,15 @@ function readyFixture() {
 
 /**
  * Render the panel with the given hook presets, in the panel's own call order:
- * state, probes, verifies, edits, selected, drafts, defaults, busy,
- * allowUnverified, includeNew, reasoningChoice, auto, alive-ref, autoRan-ref,
- * then ProviderBlock's `open`.
+ * state, defaults draft, auto state, alive-ref, autoRan-ref.
  */
 function renderPanel(given) {
   const presets = [
     given.state,
-    given.probes ?? {},
-    given.verifies ?? {},
-    given.edits ?? {},
-    given.selected ?? {},
-    given.drafts ?? {},
     given.defaults ?? { contextWindow: '1000000', maxTokens: '32000', exclude: 'embed, rerank', autoCapabilities: false, saving: false },
-    given.busy ?? {},
-    given.allowUnverified === true,
-    given.includeNew === true,
-    given.reasoningChoice ?? {},
     given.auto ?? {},
     { current: true },
     { current: given.autoRan ?? '' },
-    given.open === true,
   ]
   return withPresets(presets, () => render(elementOf(PanelProbe.target, {
     settings: settingsStub,
@@ -689,48 +680,6 @@ function renderPanel(given) {
   })))
 }
 
-test('the panel renders provider rows, the probe table, and the network policy fields', () => {
-  const fixture = readyFixture()
-  const tree = renderPanel({ state: fixture.state, probes: fixture.probes, drafts: fixture.drafts, open: true })
-  const text = textsOf(tree).join(' | ')
-  for (const expected of [
-    '厂商探测与网络策略',
-    'Acme Gateway',
-    '已挂载',
-    '2 个已声明的模型',
-    'openai-completions',
-    '探测端点能力',
-    '测试选中模型的扩展能力',
-    '确定添加 / 更新配置',
-    '同时写入未验证的推断（端点可能拒绝，导致该轮请求失败）',
-    '同时新增端点上其余 1 个对话模型',
-    '每勾选一个模型会发',
-    'Acme Think (acme-think)',
-    '262144',
-    '32768',
-    '端点声明',
-    '未能识别',
-    '出站网络策略',
-    '直连（忽略代理环境变量）',
-    '使用指定 CA',
-    '保存网络策略',
-    '上下文 / 输出默认值与非对话模型过滤（所有厂商共用）',
-    '默认上下文长度',
-    '过滤关键字（逗号分隔）',
-    '保存默认值',
-    '端点的列表里没有出现：acme-retired（会保留原有数值）。',
-  ]) {
-    assert.equal(text.includes(expected), true, `the panel must render ${JSON.stringify(expected)}; got: ${text}`)
-  }
-  // The collapsed header shows the configured policy as a chip, so the user
-  // can see at a glance where the network policy lives.
-  const collapsed = renderPanel({ state: fixture.state, probes: fixture.probes, drafts: fixture.drafts, open: false })
-  const collapsedText = textsOf(collapsed).join(' | ')
-  assert.equal(collapsedText.includes('直连 + 自定义CA'), true, collapsedText)
-  // Expanded blocks have no focus-outline styling: the blue frame is gone.
-  assert.equal(text.includes('outline:none'), false) // CSS is not in the render tree; the assertion lives in the css string below.
-})
-
 test('the panel CSS removes focus outlines and accents checkboxes with the theme', () => {
   const source = readFileSync(entry, 'utf8')
   assert.equal(source.includes('.dspt_root :focus{outline:none;box-shadow:none}'), true)
@@ -741,266 +690,10 @@ test('the panel CSS removes focus outlines and accents checkboxes with the theme
   // "声明档位" radio is the blue frame the user actually reported.
   assert.equal(source.includes('[data-dsh-part] input[type=checkbox],[data-dsh-part] input[type=radio]{accent-color:'), true)
   assert.equal(source.includes('[data-dsh-part] input[type=checkbox]:focus,[data-dsh-part] input[type=radio]:focus{outline:none;box-shadow:none}'), true)
-})
-
-test('the probe table marks an inferred level set as unverified', () => {
-  const fixture = readyFixture()
-  const probed = fixture.probes.acme.result.models[0]
-  const tree = renderPanel({
-    state: fixture.state,
-    probes: { acme: { result: { ...fixture.probes.acme.result, models: [{ ...probed, reasoningSource: 'heuristic' }] } } },
-    drafts: fixture.drafts,
-    open: true,
-  })
-  const text = textsOf(tree).join(' | ')
-  assert.equal(text.includes('按模型名推断（未验证）'), true, text)
-})
-
-test('the verification verdict table renders every level and its reason', () => {
-  const fixture = readyFixture()
-  const verify = {
-    acme: {
-      result: {
-        route: 'acme',
-        protocol: 'openai-completions',
-        requests: 9,
-        models: [
-          {
-            id: 'acme-think',
-            verdicts: [
-              { level: 'baseline', status: 'accepted', wire: '', sawReasoning: false },
-              { level: 'low', status: 'accepted', wire: 'low', sawReasoning: true },
-              { level: 'medium', status: 'rejected', wire: 'medium', sawReasoning: false, message: 'HTTP 400；端点自称接受：low、high' },
-              { level: 'high', status: 'accepted', wire: 'high', sawReasoning: true },
-            ],
-            accepted: ['low', 'high'],
-            tested: ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'],
-            capabilities: { developerRole: 'unsupported', imageInput: 'supported' },
-          },
-        ],
-      },
-    },
-  }
-  const tree = renderPanel({ state: fixture.state, probes: fixture.probes, verifies: verify, drafts: fixture.drafts, open: true })
-  const text = textsOf(tree).join(' | ')
-  for (const expected of [
-    '基线（不带思考参数）',
-    '接受',
-    '拒绝',
-    '有推理输出',
-    'HTTP 400；端点自称接受：low、high',
-    '端点实测（实测）',
-    '实测可用档位：low / high',
-    'off / low / high',
-    '支持图像输入',
-    '不认 developer 角色（确认时自动写 compat 修正）',
-  ]) {
-    assert.equal(text.includes(expected), true, `the verdict table must render ${JSON.stringify(expected)}; got: ${text}`)
-  }
-})
-
-test('a verification that rejected everything explains itself instead of declaring "no reasoning"', () => {
-  const fixture = readyFixture()
-  const verify = {
-    acme: {
-      result: {
-        route: 'acme',
-        protocol: 'openai-completions',
-        requests: 8,
-        models: [
-          {
-            id: 'acme-think',
-            verdicts: [
-              { level: 'baseline', status: 'accepted', wire: '', sawReasoning: false },
-              { level: 'minimal', status: 'rejected', wire: 'minimal', sawReasoning: false },
-              { level: 'low', status: 'rejected', wire: 'low', sawReasoning: false },
-              { level: 'medium', status: 'rejected', wire: 'medium', sawReasoning: false },
-              { level: 'high', status: 'rejected', wire: 'high', sawReasoning: false },
-              { level: 'xhigh', status: 'rejected', wire: 'xhigh', sawReasoning: false },
-              { level: 'max', status: 'rejected', wire: 'max', sawReasoning: false },
-            ],
-            accepted: [],
-            tested: ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'],
-          },
-        ],
-      },
-    },
-  }
-  const text = textsOf(renderPanel({ state: fixture.state, probes: fixture.probes, verifies: verify, drafts: fixture.drafts, open: true })).join(' | ')
-  assert.equal(text.includes('端点拒绝了全部测试档位'), true, text)
-  assert.equal(text.includes('实测没有可用档位'), true, text)
-})
-
-test('a failed verification renders its message', () => {
-  const fixture = readyFixture()
-  const text = textsOf(renderPanel({
-    state: fixture.state,
-    probes: fixture.probes,
-    verifies: { acme: { error: '实测失败：端点拒绝了凭据（HTTP 401）' } },
-    drafts: fixture.drafts,
-    open: true,
-  })).join(' | ')
-  assert.equal(text.includes('端点拒绝了凭据（HTTP 401）'), true, text)
-})
-
-test('a collapsed provider renders only its header and catalog summary', () => {
-  const fixture = readyFixture()
-  const text = textsOf(renderPanel({ state: fixture.state, probes: fixture.probes, drafts: fixture.drafts })).join(' | ')
-  assert.equal(text.includes('Acme Gateway'), true)
-  assert.equal(text.includes('展开'), true)
-  // Collapsed: the probe table and the network editor must not be rendered,
-  // but the policy chip gives the collapsed row its state at a glance.
-  assert.equal(text.includes('出站网络策略'), false, text)
-  assert.equal(text.includes('262144'), false, text)
-  assert.equal(text.includes('直连 + 自定义CA'), true, text)
-})
-
-test('the bottom bar tests only the checked models, and the reasoning select offers common accepted levels', () => {
-  const fixture = readyFixture()
-  const verify = {
-    acme: {
-      result: {
-        route: 'acme',
-        protocol: 'openai-completions',
-        requests: 9,
-        models: [
-          {
-            id: 'acme-think',
-            verdicts: [
-              { level: 'low', status: 'accepted', wire: 'low', sawReasoning: true },
-              { level: 'medium', status: 'rejected', wire: 'medium', sawReasoning: false },
-              { level: 'high', status: 'accepted', wire: 'high', sawReasoning: true },
-            ],
-            accepted: ['low', 'high'],
-            tested: ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'],
-            capabilities: {},
-          },
-        ],
-      },
-    },
-  }
-  const tree = renderPanel({ state: fixture.state, probes: fixture.probes, verifies: verify, drafts: fixture.drafts, open: true })
-  /** Find the confirm button and the test button, and invoke their handlers through the element props. */
-  const buttons = []
-  ;(function collect(node) {
-    if (Array.isArray(node)) { node.forEach(collect); return }
-    if (node === null || node === undefined || typeof node !== 'object') return
-    if (node.type === 'button') buttons.push(node)
-    ;(node.children ?? []).forEach(collect)
-  })(tree)
-  const labels = buttons.map((button) => textsOf(button.children ?? []).join(''))
-  assert.equal(labels.includes('确定添加 / 更新配置'), true, labels.join(','))
-
-  const text = textsOf(tree).join(' | ')
-  assert.equal(text.includes('默认思考档位'), true, text)
-  assert.equal(text.includes('low'), true)
-  // The default thinking-level select shows only the levels every verified model accepted.
-  const selectOptions = []
-  ;(function collectOptions(node) {
-    if (Array.isArray(node)) { node.forEach(collectOptions); return }
-    if (node === null || node === undefined || typeof node !== 'object') return
-    if (node.type === 'option') selectOptions.push(textsOf(node.children ?? []).join(''))
-    ;(node.children ?? []).forEach(collectOptions)
-  })(tree)
-  assert.equal(selectOptions.includes('不改动'), true, JSON.stringify(selectOptions))
-  assert.equal(selectOptions.includes('medium'), false, JSON.stringify(selectOptions))
-})
-
-test('confirm writes the rows, the developer-role compat fix, and the reasoning default', async () => {
-  const fixture = readyFixture()
-  const verify = {
-    acme: {
-      result: {
-        route: 'acme',
-        protocol: 'openai-completions',
-        requests: 9,
-        models: [
-          {
-            id: 'acme-think',
-            verdicts: [
-              { level: 'low', status: 'accepted', wire: 'low', sawReasoning: true },
-              { level: 'high', status: 'accepted', wire: 'high', sawReasoning: true },
-            ],
-            accepted: ['low', 'high'],
-            tested: ['low', 'high'],
-            capabilities: { developerRole: 'unsupported', imageInput: 'supported' },
-          },
-        ],
-      },
-    },
-  }
-  mutations.length = 0
-  const tree = renderPanel({
-    state: fixture.state,
-    probes: fixture.probes,
-    verifies: verify,
-    reasoningChoice: { acme: 'high' },
-    drafts: fixture.drafts,
-    open: true,
-  })
-  let confirm
-  ;(function collect(node) {
-    if (Array.isArray(node)) { node.forEach(collect); return }
-    if (node === null || node === undefined || typeof node !== 'object') return
-    if (node.type === 'button' && textsOf(node.children ?? []).join('') === '确定添加 / 更新配置') confirm = node
-    ;(node.children ?? []).forEach(collect)
-  })(tree)
-  assert.notEqual(confirm, undefined, 'confirm button must render')
-  confirm.props.onClick()
-  await new Promise((resolve) => setTimeout(resolve, 0))
-
-  assert.equal(mutations.length >= 1, true, 'confirm must write')
-  const [write] = mutations
-  assert.equal(write.ns, 'llm-pi-ai')
-  const ops = write.ops
-  const modelsOp = ops.find((op) => op.path.join('.') === 'providers.acme.models')
-  const compatOp = ops.find((op) => op.path.join('.') === 'providers.acme.compat.supportsDeveloperRole')
-  const reasoningOp = ops.find((op) => op.path.join('.') === 'providers.acme.reasoning')
-  assert.notEqual(modelsOp, undefined, JSON.stringify(ops))
-  assert.equal(modelsOp.value.length, 2, 'configured rows plus nothing new')
-  // The verified-and-checked model carries image input and the developer fix.
-  const think = modelsOp.value.find((row) => row.id === 'acme-think')
-  sameJson(think.reasoningEfforts, { off: null, low: 'low', high: 'high' })
-  assert.equal(compatOp.value, false)
-  assert.equal(reasoningOp.value, 'high')
-  // The retired model the endpoint never lists stays untouched.
-  const retired = modelsOp.value.find((row) => row.id === 'acme-retired')
-  sameJson(retired, { id: 'acme-retired' })
-})
-
-test('the empty state, the read-only notice, and a failed overview all render', () => {
-  const empty = {
-    phase: 'ready',
-    view: { writable: true, namespaces: [] },
-    overview: { providers: [], live: [] },
-    failure: undefined,
-  }
-  assert.equal(textsOf(renderPanel({ state: empty })).join(' | ').includes('还没有配置任何 pi-ai 厂商'), true)
-
-  const readOnly = {
-    phase: 'ready',
-    view: { writable: false, namespaces: [] },
-    overview: { providers: [], live: [] },
-    failure: undefined,
-  }
-  assert.equal(textsOf(renderPanel({ state: readOnly })).join(' | ').includes('当前设置文档只读'), true)
-
-  const failed = {
-    phase: 'error',
-    view: undefined,
-    overview: undefined,
-    failure: 'host exploded',
-  }
-  const failedText = textsOf(renderPanel({ state: failed })).join(' | ')
-  assert.equal(failedText.includes('host exploded'), true, failedText)
-})
-
-test('providers fall back to the settings document when the host overview fails', () => {
-  const fixture = readyFixture()
-  const overviewFailed = { ...fixture.state, overview: undefined, failure: 'overview unavailable' }
-  const text = textsOf(renderPanel({ state: overviewFailed, probes: fixture.probes, drafts: fixture.drafts, open: true })).join(' | ')
-  assert.equal(text.includes('Acme Gateway'), true, text)
-  assert.equal(text.includes('overview unavailable'), true, text)
+  // The widgets injected into the official editor cards carry their own styles.
+  assert.equal(source.includes('.dspi_fs{'), true)
+  assert.equal(source.includes('.dspi_chip_on'), true)
+  assert.equal(source.includes('.dspi_rowcheck'), true)
 })
 
 test('the very first mount — before describe() resolves — survives every effect', async () => {
@@ -1039,4 +732,69 @@ test('the overview reply is unwrapped through both envelopes', () => {
   const junk = overviewOf(undefined)
   assert.equal(junk.value, undefined)
   assert.equal(junk.failure, 'unknown')
+})
+
+test('the footer renders the shared defaults editor with the automation toggle', () => {
+  const fixture = readyFixture()
+  const tree = renderPanel({ state: fixture.state })
+  const text = textsOf(tree).join(' | ')
+  assert.equal(text.includes(translator()('pt.defaults.auto')), true, text)
+  assert.equal(text.includes(translator()('pt.defaults.save')), true, text)
+  assert.equal(text.includes(translator()('pt.defaults.exclude')), true, text)
+})
+
+test('networkPolicyOp unsets an empty draft and writes only non-default fields', () => {
+  const { networkPolicyOp } = exported.__testables
+  sameJson(
+    networkPolicyOp('acme', { host: '', skipProxy: false, tls: 'verify', caFile: '', caPem: '', certFile: '', keyFile: '' }),
+    { op: 'unset', path: ['network', 'acme'] },
+  )
+  const full = networkPolicyOp('acme', { host: 'api.acme.internal', skipProxy: true, tls: 'ca', caFile: 'C:\\ca.pem', caPem: '', certFile: '', keyFile: '' })
+  assert.equal(full.op, 'set')
+  sameJson(full.path, ['network', 'acme'])
+  sameJson(full.value, { host: 'api.acme.internal', skipProxy: true, tls: 'ca', caFile: 'C:\\ca.pem' })
+  // the CA path only travels with the ca mode
+  const insecure = networkPolicyOp('acme', { host: 'h', tls: 'insecure', caFile: 'ignored.pem' })
+  sameJson(insecure.value, { host: 'h', tls: 'insecure' })
+})
+
+test('capabilityWriteOps merges rows additively, fixes the developer role, and sets a common default level', () => {
+  const { capabilityWriteOps } = exported.__testables
+  const profile = { api: 'openai-completions', models: [{ id: 'acme-think', name: 'Acme Think' }] }
+  const probed = [{ id: 'acme-think', contextWindow: 262144, maxTokens: 32768, contextSource: 'endpoint', maxTokensSource: 'endpoint', reasoningSource: 'none' }]
+  const verifyValue = {
+    models: [{
+      id: 'acme-think',
+      verdicts: [
+        { level: 'low', status: 'accepted', wire: 'low', sawReasoning: true },
+        { level: 'high', status: 'accepted', wire: 'high', sawReasoning: true },
+      ],
+      accepted: ['low', 'high'],
+      capabilities: { developerRole: 'unsupported', imageInput: 'supported' },
+    }],
+  }
+  const defaults = { contextWindow: 1000000, maxTokens: 32000, levels: ['low', 'high'] }
+  const ops = capabilityWriteOps('acme', profile, probed, verifyValue, defaults)
+  sameJson(ops.map((op) => op.path.join('.')).sort(), ['providers.acme.compat.supportsDeveloperRole', 'providers.acme.models', 'providers.acme.reasoning'].sort())
+  const modelsOp = ops.find((op) => op.path.join('.') === 'providers.acme.models')
+  sameJson(modelsOp.value[0].reasoningEfforts, { off: null, low: 'low', high: 'high' })
+  sameJson(modelsOp.value[0].input, ['text', 'image'])
+  assert.equal(modelsOp.value[0].contextWindow, 262144)
+  assert.equal(ops.find((op) => op.path.join('.') === 'providers.acme.reasoning').value, 'high')
+  // applying the result a second time produces nothing — the pass is idempotent
+  const applied = { ...profile, models: modelsOp.value, compat: { supportsDeveloperRole: false }, reasoning: 'high' }
+  sameJson(capabilityWriteOps('acme', applied, probed, verifyValue, defaults), [])
+})
+
+test('modelCapabilityOp rebuilds one entry in place and refuses a model the settings do not have', () => {
+  const { modelCapabilityOp } = exported.__testables
+  const models = [{ id: 'a' }, { id: 'b', input: ['text', 'image'] }]
+  const op = modelCapabilityOp('acme', models, 'a', { image: true, levels: { low: 'low', high: 'MAXIMUM' } })
+  sameJson(op.path, ['providers', 'acme', 'models', 0])
+  sameJson(op.value.input, ['text', 'image'])
+  sameJson(op.value.reasoningEfforts, { off: null, low: 'low', high: 'MAXIMUM' })
+  const cleared = modelCapabilityOp('acme', models, 'b', { image: false, levels: {} })
+  assert.equal(cleared.value.reasoningEfforts, undefined)
+  sameJson(cleared.value.input, ['text'])
+  assert.equal(modelCapabilityOp('acme', models, 'missing', { image: true }), undefined)
 })

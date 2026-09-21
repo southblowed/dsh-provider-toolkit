@@ -3,7 +3,7 @@
 **English** | [简体中文](README.zh.md)
 
 **Endpoint probing + outbound network policy for custom pi-ai providers.** A DSH Web plugin
-(host half + client half) that adds a panel at the bottom of Settings → Models, covering the
+(host half + client half) that integrates into the official Settings → Models cards, covering the
 four things the built-in "add model" flow lacks for custom providers:
 
 1. **Auto-fills context window / max output (with defaults when the endpoint stays silent)** —
@@ -118,30 +118,28 @@ Harness" works too), then open Settings → Models — the panel sits at the pag
 
 ## Usage
 
-Settings → Models → the "Provider probing & network policy" panel at the bottom:
+Every entry point lives **inside the official UI** on Settings → Models (the plugin only injects;
+there is no separate panel to learn):
 
-1. **Opening the page configures everything automatically** (on by default; toggle at the
-   panel's bottom) — per provider: interrogate the model list once → live-test every model the
-   configuration shape has not measured yet → write reasoning levels, image input, the
-   `developer`-role fix, capacity defaults, and a route-level default thinking level (the
-   highest level every model accepts — **thinking turns itself on**). Results are cached by
-   configuration shape (model id set + protocol + request-shaping compat), so adding one model
-   only measures that one. **The automatic pass only adds**: it never deletes hand-written
-   declarations and never overwrites values you filled in.
-2. Expand a provider to find its **outbound network policy** (host match, direct-connection
-   switch, TLS mode / CA / client certificate) — collapsed rows show a policy chip so you can
-   see at a glance whether a provider bypasses the proxy or verifies certificates. Saving
-   applies immediately.
-3. "Probe endpoint capabilities" lists the chat models the endpoint offers (non-chat models are
-   filtered and counted), each row's context / max output, thinking levels, and the source of
-   every cell (endpoint / default / edited). **The values in the table are the values that will
-   be written; every cell is editable.**
-4. Check the models to measure (configured ones are pre-checked) and click "test selected
-   models' extended capabilities" for a manual re-measurement: one baseline, one developer-role,
-   one image-input request, plus one per level per model.
-5. "Confirm add / update configuration" writes everything the table shows; check "also add the
-   endpoint's other N chat models" to pull the rest in; unverified inferences are never written
-   unless you explicitly opt in.
+1. **Network policy while adding a provider**: the "add custom provider" card gains an "outbound
+   network policy" area — host match, direct connection (ignore proxy env vars), TLS mode
+   (verify / skip / custom CA), client certificate and key — written together with "create provider".
+2. **Network policy while editing a provider**: provider card → Edit → the same area; changes
+   apply the moment you hit save.
+3. **Per-model checked testing**: edit card → expand 自定义设置 → every row of the model catalog
+   starts with a checkbox (all on by default); the bottom-left "test extended capabilities"
+   button live-tests the checked models (9 minimal requests each: baseline + developer role +
+   image input + one per level) and writes what passes: reasoning levels, image input, the
+   developer-role fix, capacity defaults.
+4. **Single-model tweaks**: a model row's capacity expand area edits it directly — reasoning-level
+   chips (toggle each, optionally edit the wire spelling) and an image-input checkbox — written
+   immediately, nowhere else to look.
+5. **Zero-touch for new providers**: after creation, opening the Models page auto-fills measured
+   capabilities for models never tested (cached by configuration shape — model id set + protocol +
+   request-shaping compat — so each shape measures once; strictly additive: it never deletes
+   hand-written declarations nor overwrites values you filled in). The page-bottom "capability
+   defaults & automation" card turns the automation off and edits the probe defaults and the
+   non-chat filter.
 
 ## Why this must be a real plugin package
 
@@ -158,9 +156,11 @@ requires a node-side half, hence a real bundle package rather than a browser-onl
 Each provider card on the Models page has exactly one extension seat
 (`settings.models.provider-card`, keyed by settingsNs), already occupied by
 `@linxin666/dsh-client-ui-model-capabilities` (manual reasoning-level / image-input editing).
-This plugin **only uses the footer seat `settings.models.footer`** — the two coexist, and both
-read and write the same `llm-pi-ai` settings document: what this plugin auto-detects shows up in
-the other's manual editor directly.
+This plugin does not fight for the seat: provider- and model-level controls are DOM-injected
+**inside the official editor cards** (network policy in the card form, per-model capabilities in
+a model row's expand area), and the footer seat only hosts the probe defaults and the automation
+toggle. Both plugins read and write the same `llm-pi-ai` settings document: what this plugin
+auto-detects shows up in the other's manual editor directly.
 
 ## Behavior & boundaries
 
@@ -168,7 +168,9 @@ the other's manual editor directly.
   endpoint-disclosed value → the row's existing value → the default.
 - **The 1,000,000 default is deliberately generous**; lower it in the defaults editor or per
   cell if you prefer.
-- **Probing never writes settings** — only your confirm button does.
+- **Probing never writes settings by itself** — writes come from the in-card "test extended
+  capabilities" button and the (toggleable) automatic pass, and both write only what the
+  endpoint provably accepted.
 - **Filtering only affects models the endpoint lists that you have not configured yet.**
 - **Unverified inference never lands on disk by default** — `reasoningEfforts` is written only
   for endpoint-declared or live-verified levels; when a live test rejects every level, nothing
@@ -222,6 +224,6 @@ stdio, which the local file sandbox refuses). The self-signed certificates under
 |---|---|
 | `index.js` | host half: settings namespace, `globalThis.fetch` policy wrapper, the `providerToolkit` service (overview / probe / verifyReasoning) |
 | `typert.host.js` | manifest of the three strict Remote invocations |
-| `client.js` | browser half: the Models footer panel (React, hand-written bundle wrapper) |
+| `client.js` | browser half: DOM integration inside the official provider editor cards + the footer defaults panel (hand-written bundle wrapper) |
 | `cordis.patch.yml` | bundle patch inserting the `provider-toolkit` row into the web profile |
 | `install.ps1` | offline fallback: copies into the profile's `node_modules` and registers the bundle |

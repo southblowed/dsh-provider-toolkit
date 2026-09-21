@@ -23,6 +23,23 @@ window.__ModuleLoader__.load({
 			// nothing else in the app, and only the accent colour is touched.
 			"[data-dsh-part] input[type=checkbox],[data-dsh-part] input[type=radio]{accent-color:var(--dsw-alias-label-primary)}",
 			"[data-dsh-part] input[type=checkbox]:focus,[data-dsh-part] input[type=radio]:focus{outline:none;box-shadow:none}",
+			// Widgets this plugin injects into the official provider editor cards.
+			".dspi_fs{border:1px solid var(--dsw-alias-border-l2);border-radius:8px;padding:10px 12px;margin:8px 0;display:flex;flex-direction:column;gap:8px}",
+			".dspi_fs_title{font-size:12px;font-weight:600;color:var(--dsw-alias-label-primary)}",
+			".dspi_row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
+			".dspi_label{font-size:12px;color:var(--dsw-alias-label-tertiary);min-width:72px}",
+			".dspi_input{background:var(--dsw-alias-bg-module-platform);color:var(--dsw-alias-label-primary);border:1px solid var(--dsw-alias-border-l2);border-radius:8px;padding:3px 8px;font:inherit;font-size:12px;min-width:120px}",
+			".dspi_input.dspi_wide{min-width:220px;flex:1}",
+			".dspi_check{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dsw-alias-label-primary)}",
+			".dspi_btn{background:var(--dsw-alias-bg-module-platform);color:var(--dsw-alias-label-primary);border:none;border-radius:14px;padding:0 12px;height:28px;font:inherit;font-size:12px;cursor:pointer}",
+			".dspi_btn:hover{background:var(--dsw-alias-interactive-bg-hover)}",
+			".dspi_btn:disabled{cursor:default;opacity:.45}",
+			".dspi_chip{border:1px solid var(--dsw-alias-border-l2);border-radius:10px;padding:1px 8px;font-size:11px;cursor:pointer;background:transparent;color:var(--dsw-alias-label-tertiary)}",
+			".dspi_chip_on{border-color:var(--dsw-alias-label-primary);color:var(--dsw-alias-label-primary);font-weight:600}",
+			".dspi_status{font-size:12px;color:var(--dsw-alias-label-tertiary)}",
+			".dspi_error{font-size:12px;color:var(--dsw-alias-fill-danger,var(--dsw-alias-label-tertiary))}",
+			".dspi_ok{font-size:12px;color:var(--dsw-alias-fill-safe,var(--dsw-alias-label-tertiary))}",
+			".dspi_rowcheck{margin-right:6px;width:14px;height:14px;accent-color:var(--dsw-alias-label-primary)}",
 			".dspt_head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}",
 			".dspt_title{color:var(--dsw-alias-label-primary);font-size:14px;font-weight:600;line-height:22px}",
 			".dspt_sub{color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:18px}",
@@ -70,8 +87,8 @@ window.__ModuleLoader__.load({
 		//#region dsh-provider-toolkit/locales.ts
 		const NS = "provider-toolkit";
 		const zh = {
-			"pt.title": "厂商探测与网络策略",
-			"pt.description": "自动读取自定义厂商的模型上下文/输出与思考级别，并为每个厂商单独指定出站代理与 TLS 行为。策略立即生效，无需重启。",
+			"pt.title": "扩展能力默认值与自动化",
+			"pt.description": "探测用的默认值与非对话模型过滤（所有厂商共用）；打开本页时自动为未实测的模型写入扩展能力。出站代理 / TLS 策略在每个厂商的添加与编辑卡片里配置，逐模型能力在模型行的展开区里。",
 			"pt.loading": "正在读取…",
 			"pt.reload": "重新读取",
 			"pt.empty": "还没有配置任何 pi-ai 厂商。先在 Models 页添加一个自定义厂商，再回到这里。",
@@ -169,10 +186,26 @@ window.__ModuleLoader__.load({
 			"pt.network.hint": "直连会跳过 HTTPS_PROXY 等代理设置，适合内网网关；TLS 覆盖只作用于该厂商的请求。",
 			"pt.conflict": "配置在别处被改动，已重新读取，请重试。",
 			"pt.failed": "操作失败：{message}",
+			"pt.integ.network.applies": "写入后对该厂商的请求立即生效",
+			"pt.integ.network.pendingCreate": "随「创建提供方」一并写入",
+			"pt.integ.network.writeFailed": "网络策略写入失败：{message}",
+			"pt.integ.detect": "探测扩展能力",
+			"pt.integ.detect.hint": "对目录里勾选的模型实测推理档位 / 图像输入 / developer 角色，通过的自动写入（每个模型 9 次极小请求）",
+			"pt.integ.detect.running": "正在探测扩展能力…",
+			"pt.integ.detect.done": "已探测并写入 {n} 个模型的扩展能力",
+			"pt.integ.detect.none": "先在目录里勾选要探测的模型",
+			"pt.integ.detect.needSave": "创建并提供方保存后可用",
+			"pt.integ.detect.failed": "探测失败：{message}",
+			"pt.integ.caps.image": "图像输入",
+			"pt.integ.caps.levels": "推理档位",
+			"pt.integ.caps.wire": "发送值",
+			"pt.integ.caps.unsaved": "保存提供方后可配置该模型",
+			"pt.integ.caps.saved": "已写入",
+			"pt.integ.caps.failed": "写入失败：{message}",
 		};
 		const en = {
-			"pt.title": "Provider probing & network policy",
-			"pt.description": "Read a custom provider's model context/output and thinking levels automatically, and give each provider its own outbound proxy and TLS behaviour. Changes apply live.",
+			"pt.title": "Capability defaults & automation",
+			"pt.description": "Probe defaults and the non-chat-model filter, shared by every provider; opening this page writes measured capabilities for models not yet tested. Outbound proxy / TLS policy lives in each provider's add/edit card, per-model capabilities in a model row's expand area.",
 			"pt.loading": "Loading…",
 			"pt.reload": "Reload",
 			"pt.empty": "No pi-ai provider is configured yet. Add a custom provider on the Models page first.",
@@ -270,6 +303,22 @@ window.__ModuleLoader__.load({
 			"pt.network.hint": "Direct skips HTTPS_PROXY and friends, which is what an intranet gateway needs; TLS overrides apply only to this provider's requests.",
 			"pt.conflict": "The configuration changed elsewhere; reloaded, please retry.",
 			"pt.failed": "Failed: {message}",
+			"pt.integ.network.applies": "Applies to this provider's requests as soon as it is written",
+			"pt.integ.network.pendingCreate": "Written together with “create provider”",
+			"pt.integ.network.writeFailed": "Failed to write the network policy: {message}",
+			"pt.integ.detect": "Test extended capabilities",
+			"pt.integ.detect.hint": "Live-tests reasoning levels / image input / developer role for the models checked in the catalog and writes what passes (9 minimal requests per model)",
+			"pt.integ.detect.running": "Testing extended capabilities…",
+			"pt.integ.detect.done": "Tested and wrote capabilities for {n} model(s)",
+			"pt.integ.detect.none": "Check the models to test in the catalog first",
+			"pt.integ.detect.needSave": "Available once the provider is created and saved",
+			"pt.integ.detect.failed": "Test failed: {message}",
+			"pt.integ.caps.image": "Image input",
+			"pt.integ.caps.levels": "Reasoning levels",
+			"pt.integ.caps.wire": "wire",
+			"pt.integ.caps.unsaved": "Save the provider to configure this model",
+			"pt.integ.caps.saved": "Written",
+			"pt.integ.caps.failed": "Write failed: {message}",
 		};
 		//#endregion
 
@@ -567,354 +616,506 @@ window.__ModuleLoader__.load({
 			if (isRecord(inner) && inner.ok === true) return { value: isRecord(inner.value) ? inner.value : undefined, failure: undefined };
 			return { value: undefined, failure: messageOf(inner) };
 		}
+		/** Reasoning levels in wire order; "off" is declared separately (send nothing). */
+		const WIRE_LEVELS = ["minimal", "low", "medium", "high", "xhigh", "max"];
+
+		/** The network-policy settings op for one route: unset when the draft is empty. */
+		function networkPolicyOp(route, draft) {
+			const value = sanitize({
+				host: draft.host,
+				skipProxy: draft.skipProxy === true ? true : undefined,
+				tls: draft.tls === "verify" || draft.tls === undefined ? undefined : draft.tls,
+				caFile: draft.tls === "ca" ? draft.caFile : undefined,
+				caPem: draft.tls === "ca" ? draft.caPem : undefined,
+				certFile: draft.certFile,
+				keyFile: draft.keyFile,
+			});
+			return Object.keys(value).length === 0
+				? { op: "unset", path: ["network", route] }
+				: { op: "set", path: ["network", route], value };
+		}
+
+		/**
+		 * Compute the ops that apply verified capabilities to one route: merged
+		 * model rows (additive — hand-written declarations survive), the
+		 * developer-role compat fix, and a route default thinking level only when
+		 * the route has none and every measured model accepts it. Shared by the
+		 * automatic pass and the in-card "test extended capabilities" button.
+		 */
+		function capabilityWriteOps(route, profile, probedModels, verifyValue, defaults) {
+			const configured = isRecord(profile) && Array.isArray(profile.models) ? profile.models.filter(isRecord) : [];
+			const verified = {};
+			const measured = (verifyValue !== undefined && isRecord(verifyValue) && Array.isArray(verifyValue.models) ? verifyValue.models : []).filter(isRecord);
+			for (const model of measured) if (typeof model.id === "string") verified[model.id] = model;
+			const rows = mergeModels(configured, Array.isArray(probedModels) ? probedModels : [], false, {
+				verified, allowUnverified: false, edits: {}, defaults, conservative: true,
+			}).map(sanitize);
+			const ops = [];
+			if (JSON.stringify(rows) !== JSON.stringify(configured.map(sanitize))) {
+				ops.push({ op: "set", path: ["providers", route, "models"], value: rows });
+			}
+			if (measured.some((model) => isRecord(model.capabilities) && model.capabilities.developerRole === "unsupported")) {
+				const compat = isRecord(profile) && isRecord(profile.compat) ? profile.compat : {};
+				if (compat.supportsDeveloperRole !== false) {
+					ops.push({ op: "set", path: ["providers", route, "compat", "supportsDeveloperRole"], value: false });
+				}
+			}
+			if (isRecord(profile) && profile.reasoning === undefined && measured.length > 0) {
+				const levels = defaults !== undefined && Array.isArray(defaults.levels) && defaults.levels.length > 0 ? defaults.levels : WIRE_LEVELS;
+				const common = levels.filter((level) => measured.every((model) => Array.isArray(model.accepted) && model.accepted.includes(level)));
+				if (common.length > 0) ops.push({ op: "set", path: ["providers", route, "reasoning"], value: common[common.length - 1] });
+			}
+			return ops;
+		}
+
+		/**
+		 * The per-model capability edit from a row's expand area: rebuild that one
+		 * entry's `input` and `reasoningEfforts` and set it in place. Returns the
+		 * full-path op, or undefined when the model id is not in the array (an
+		 * unsaved draft row — nothing to write to yet).
+		 */
+		function modelCapabilityOp(route, models, modelId, capability) {
+			const index = models.findIndex((model) => isRecord(model) && model.id === modelId);
+			if (index < 0) return undefined;
+			const entry = { ...models[index] };
+			if (capability.image === true) entry.input = ["text", "image"];
+			else if (capability.image === false) entry.input = ["text"];
+			if (capability.levels !== undefined) {
+				const enabled = WIRE_LEVELS.filter((level) => isRecord(capability.levels) && capability.levels[level] !== undefined && capability.levels[level] !== false);
+				if (enabled.length === 0) delete entry.reasoningEfforts;
+				else {
+					const efforts = { off: null };
+					for (const level of enabled) {
+						const wire = capability.levels[level];
+						efforts[level] = typeof wire === "string" && wire.length > 0 ? wire : level;
+					}
+					entry.reasoningEfforts = efforts;
+				}
+			}
+			return { op: "set", path: ["providers", route, "models", index], value: sanitize(entry) };
+		}
+		//#endregion
+
+		//#region dsh-provider-toolkit/integrator.ts
+		// DOM integration with the official Models settings cards. The official
+		// page declares no slot inside its provider editor cards, so these
+		// widgets are injected at structural anchors and re-applied by a
+		// MutationObserver whenever React re-renders the card. Everything writes
+		// through the settings faces directly — the official editor's minimal
+		// path-op saves never touch these fields.
+
+		/** A pi-ai custom-provider card is the one whose protocol select offers openai-completions. */
+		function isCustomPiAiCard(card) {
+			for (const select of card.querySelectorAll("select")) {
+				for (const option of Array.from(select.options || [])) {
+					if (option.value === "openai-completions" || option.textContent === "openai-completions") return true;
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * The route a card edits: edit cards carry it as the title and a
+		 * 自定义设置 <details>; the add card types it into the Provider ID field
+		 * (its label reads "Provider ID" in every shipped locale).
+		 */
+		function cardContext(card) {
+			const customized = card.querySelector('details[class*="_customized"]');
+			const title = card.querySelector('[class*="_editorTitle"]');
+			if (customized) return { kind: "edit", route: title ? (title.textContent || "").trim() : "" };
+			const idLabel = Array.from(card.querySelectorAll('[class*="_fieldLabel"]')).find((label) => (label.textContent || "").trim() === "Provider ID");
+			const idInput = idLabel && idLabel.parentElement ? idLabel.parentElement.querySelector('input[type="text"]') : null;
+			return { kind: "add", route: idInput ? idInput.value.trim() : "", idInput };
+		}
+
+		function cardActions(card) {
+			return card.querySelector('[class*="_editorActions"]');
+		}
+
+		/** The card's commit button (创建提供方 / 保存): the last primary action. */
+		function cardPrimaryButton(card) {
+			const actions = cardActions(card);
+			if (!actions) return undefined;
+			return actions.querySelector('button[class*="_primaryButton"]') || Array.from(actions.querySelectorAll("button")).pop();
+		}
+
+		/** The baseURL a card's form currently shows (for the policy's default host). */
+		function cardBaseURL(card) {
+			for (const input of card.querySelectorAll('input[type="text"]')) {
+				if (/^https?:\/\//.test(input.value)) return input.value;
+			}
+			return "";
+		}
+
+		function el(tag, className, text) {
+			const node = document.createElement(tag);
+			if (className) node.className = className;
+			if (text !== undefined) node.textContent = text;
+			return node;
+		}
+
+		function field(labelText, input) {
+			const row = el("div", "dspi_row");
+			row.appendChild(el("span", "dspi_label", labelText));
+			row.appendChild(input);
+			return row;
+		}
+
+		function textInput(className, value, onChange) {
+			const input = el("input", className || "dspi_input");
+			input.type = "text";
+			input.value = value;
+			input.addEventListener("change", () => onChange(input.value));
+			return input;
+		}
+
+		/** Write one route's network policy through the toolkit namespace. */
+		async function writeNetworkPolicy(faces, route, draft, setStatus) {
+			const t = faces.t;
+			try {
+				const described = await faces.describe();
+				if (!described.ok) throw new Error(messageOf(described));
+				const toolkitView = viewOf(described.value.namespaces, TOOLKIT_NS);
+				if (toolkitView === undefined) throw new Error("namespace dsh-provider-toolkit missing");
+				const op = networkPolicyOp(route, draft);
+				const existing = policyOf(toolkitView, route);
+				if (op.op === "unset" && existing === undefined) { setStatus("ok", t("pt.network.saved")); return; }
+				if (op.op === "set" && existing !== undefined && JSON.stringify(op.value) === JSON.stringify(sanitize(existing))) {
+					setStatus("ok", t("pt.network.saved"));
+					return;
+				}
+				const response = await faces.mutate(TOOLKIT_NS, [op], toolkitView.revision);
+				if (!response.ok) throw new Error(messageOf(response));
+				setStatus("ok", t("pt.integ.network.applies"));
+			} catch (error) {
+				setStatus("error", t("pt.integ.network.writeFailed").replace("{message}", error instanceof Error ? error.message : String(error)));
+			}
+		}
+
+		/** The per-card network-policy fieldset, appended ahead of the action row. */
+		function buildNetworkFieldset(card, faces, info) {
+			if (card.querySelector("[data-dspi-network]")) return;
+			const actions = cardActions(card);
+			if (!actions) return;
+			const t = faces.t;
+			const fs = el("div", "dspi_fs");
+			fs.setAttribute("data-dspi-network", "1");
+			fs.appendChild(el("div", "dspi_fs_title", t("pt.network.title")));
+			const note = el("div", "dspi_status", info.kind === "add" ? t("pt.integ.network.pendingCreate") : t("pt.integ.network.applies"));
+			fs.appendChild(note);
+
+			const state = { host: "", skipProxy: false, tls: "verify", caFile: "", caPem: "", certFile: "", keyFile: "" };
+			const hostInput = textInput("dspi_input dspi_wide", "", (value) => { state.host = value; });
+			const skipBox = el("input");
+			skipBox.type = "checkbox";
+			skipBox.addEventListener("change", () => { state.skipProxy = skipBox.checked; });
+			const tlsSelect = el("select", "dspi_input");
+			for (const [value, label] of [["verify", t("pt.network.tls.verify")], ["insecure", t("pt.network.tls.insecure")], ["ca", t("pt.network.tls.ca")]]) {
+				const option = el("option", "");
+				option.value = value;
+				option.textContent = label;
+				tlsSelect.appendChild(option);
+			}
+			const caRow = field(t("pt.network.caFile"), textInput("dspi_input dspi_wide", "", (value) => { state.caFile = value; }));
+			const certRow = field(t("pt.network.certFile"), textInput("dspi_input dspi_wide", "", (value) => { state.certFile = value; }));
+			const keyRow = field(t("pt.network.keyFile"), textInput("dspi_input dspi_wide", "", (value) => { state.keyFile = value; }));
+			caRow.style.display = "none";
+			tlsSelect.addEventListener("change", () => { state.tls = tlsSelect.value; caRow.style.display = tlsSelect.value === "ca" ? "" : "none"; });
+			const skipLabel = el("label", "dspi_check");
+			skipLabel.appendChild(skipBox);
+			skipLabel.appendChild(document.createTextNode(t("pt.network.skipProxy")));
+			const skipRow = el("div", "dspi_row");
+			skipRow.appendChild(skipLabel);
+			fs.appendChild(field(t("pt.network.host"), hostInput));
+			fs.appendChild(skipRow);
+			fs.appendChild(field(t("pt.network.tls"), tlsSelect));
+			fs.appendChild(caRow);
+			fs.appendChild(certRow);
+			fs.appendChild(keyRow);
+			const status = el("span", "dspi_status");
+			const statusRow = el("div", "dspi_row");
+			statusRow.appendChild(status);
+			fs.appendChild(statusRow);
+			card.insertBefore(fs, actions);
+
+			const setStatus = (kind, message) => { status.className = kind === "error" ? "dspi_error" : "dspi_ok"; status.textContent = message; };
+			// Load the existing policy (edit cards) once the route is known.
+			if (info.kind === "edit" && info.route) {
+				faces.describe().then((described) => {
+					if (!described.ok || !document.contains(fs)) return;
+					const policy = policyOf(viewOf(described.value.namespaces, TOOLKIT_NS), info.route);
+					const draft = isRecord(policy) ? policy : {};
+					state.host = text(draft.host, "");
+					if (!state.host) {
+						const baseURL = cardBaseURL(card);
+						state.host = baseURL.replace(/^https?:\/\//, "").replace(/[/:].*$/, "");
+					}
+					state.skipProxy = draft.skipProxy === true;
+					state.tls = TLS_MODES.includes(draft.tls) ? draft.tls : "verify";
+					state.caFile = text(draft.caFile, "");
+					state.caPem = text(draft.caPem, "");
+					state.certFile = text(draft.certFile, "");
+					state.keyFile = text(draft.keyFile, "");
+					hostInput.value = state.host;
+					skipBox.checked = state.skipProxy;
+					tlsSelect.value = state.tls;
+					caRow.style.display = state.tls === "ca" ? "" : "none";
+					caRow.querySelector("input").value = state.caFile;
+					certRow.querySelector("input").value = state.certFile;
+					keyRow.querySelector("input").value = state.keyFile;
+				}).catch(() => {});
+			} else if (info.kind === "add") {
+				const baseURL = cardBaseURL(card);
+				hostInput.value = baseURL.replace(/^https?:\/\//, "").replace(/[/:].*$/, "");
+				state.host = hostInput.value;
+			}
+
+			// The official commit carries the policy: on edit cards write at once
+			// (the route exists); on the add card, write once the created route
+			// shows up in the settings document.
+			const bind = cardPrimaryButton(card);
+			if (bind && bind.dataset.dspiNetBound !== "1") {
+				bind.dataset.dspiNetBound = "1";
+				bind.addEventListener("click", () => {
+					const route = info.kind === "edit" ? info.route : (info.idInput ? info.idInput.value.trim() : "");
+					if (!route) return;
+					const draft = { ...state };
+					if (info.kind === "edit") { writeNetworkPolicy(faces, route, draft, setStatus); return; }
+					const off = faces.onDocumentUpdated(() => {
+						faces.describe().then((described) => {
+							if (!described.ok) return;
+							if (providersOf(viewOf(described.value.namespaces, LLM_NS))[route] === undefined) return;
+							off();
+							writeNetworkPolicy(faces, route, draft, setStatus);
+						}).catch(() => {});
+					});
+				});
+			}
+		}
+
+		/** The left-most action in the official action row: live-test the checked models and write what passes. */
+		function buildDetectButton(card, faces, info) {
+			const actions = cardActions(card);
+			if (!actions || actions.querySelector("[data-dspi-detect]")) return;
+			const t = faces.t;
+			const btn = el("button", "dspi_btn", t("pt.integ.detect"));
+			btn.type = "button";
+			btn.title = t("pt.integ.detect.hint");
+			btn.setAttribute("data-dspi-detect", "1");
+			const status = el("span", "dspi_status");
+			actions.insertBefore(status, actions.firstChild);
+			actions.insertBefore(btn, status);
+			if (info.kind !== "edit") {
+				btn.disabled = true;
+				btn.title = t("pt.integ.detect.needSave");
+				return;
+			}
+			btn.addEventListener("click", () => { runDetect(card, faces, info.route, btn, status); });
+		}
+
+		async function runDetect(card, faces, route, btn, status) {
+			const t = faces.t;
+			const ids = [];
+			for (const row of card.querySelectorAll('[class*="_modelRow"]')) {
+				const box = row.querySelector("input[data-dspi-check]");
+				const idInput = row.querySelector('input[type="text"]');
+				if (box && box.checked && idInput && idInput.value.trim().length > 0) ids.push(idInput.value.trim());
+			}
+			if (ids.length === 0) { status.className = "dspi_status"; status.textContent = t("pt.integ.detect.none"); return; }
+			btn.disabled = true;
+			status.className = "dspi_status";
+			status.textContent = t("pt.integ.detect.running");
+			try {
+				const probeResponse = await faces.callProbe(route);
+				if (!probeResponse.ok || !isRecord(probeResponse.value) || probeResponse.value.ok !== true) throw new Error(messageOf(probeResponse));
+				const probeValue = probeResponse.value.value;
+				const verifyResponse = await faces.callVerify(route, ids);
+				if (!verifyResponse.ok || !isRecord(verifyResponse.value) || verifyResponse.value.ok !== true) throw new Error(messageOf(verifyResponse));
+				const verifyValue = verifyResponse.value.value;
+				const described = await faces.describe();
+				if (!described.ok) throw new Error(messageOf(described));
+				const llmView = viewOf(described.value.namespaces, LLM_NS);
+				const profile = providersOf(llmView)[route];
+				if (!isRecord(profile)) throw new Error("route missing from settings");
+				const ops = capabilityWriteOps(route, profile, isRecord(probeValue) ? probeValue.models : [], verifyValue, defaultsOf(described.value.namespaces, { result: probeValue }));
+				if (ops.length > 0) {
+					const written = await faces.mutate(LLM_NS, ops, llmView.revision);
+					if (!written.ok) throw new Error(messageOf(written));
+				}
+				status.className = "dspi_ok";
+				status.textContent = t("pt.integ.detect.done").replace("{n}", String(ids.length));
+			} catch (error) {
+				status.className = "dspi_error";
+				status.textContent = t("pt.integ.detect.failed").replace("{message}", error instanceof Error ? error.message : String(error));
+			} finally {
+				btn.disabled = false;
+			}
+		}
+
+		/** A checkbox before every model row of this card's catalog (default on). */
+		function addRowCheckboxes(card) {
+			for (const row of card.querySelectorAll('[class*="_modelRow"]')) {
+				if (row.querySelector(':scope > input[data-dspi-check]')) continue;
+				const box = el("input", "dspi_rowcheck");
+				box.type = "checkbox";
+				box.checked = true;
+				box.setAttribute("data-dspi-check", "1");
+				row.insertBefore(box, row.firstChild);
+			}
+		}
+
+		/** The per-model capability editor inside a row's expanded capacity area. */
+		function enhanceAdvancedAreas(card, faces, info) {
+			if (info.kind !== "edit") return;
+			for (const advanced of card.querySelectorAll('[class*="_modelAdvanced"]')) {
+				if (advanced.dataset.dspiCaps === "1") continue;
+				advanced.dataset.dspiCaps = "1";
+				const entry = advanced.closest('[class*="_modelEntry"]');
+				const idInput = entry ? entry.querySelector('input[type="text"]') : null;
+				buildCapabilityFields(advanced, faces, info.route, () => (idInput ? idInput.value.trim() : ""));
+			}
+		}
+
+		function buildCapabilityFields(advanced, faces, route, getModelId) {
+			const t = faces.t;
+			const wrap = el("div", "dspi_fs");
+			advanced.appendChild(wrap);
+			const status = el("span", "dspi_status");
+
+			const imageLabel = el("label", "dspi_check");
+			const imageBox = el("input");
+			imageBox.type = "checkbox";
+			imageLabel.appendChild(imageBox);
+			imageLabel.appendChild(document.createTextNode(t("pt.integ.caps.image")));
+
+			const chipsRow = el("div", "dspi_row");
+			const wireRow = el("div", "dspi_row");
+			const chipInputs = {};
+
+			const gather = () => {
+				const levels = {};
+				for (const level of WIRE_LEVELS) {
+					const record = chipInputs[level];
+					if (record && record.box.checked) levels[level] = record.input ? record.input.value.trim() : level;
+				}
+				return { image: imageBox.checked, levels };
+			};
+
+			const write = async () => {
+				status.className = "dspi_status";
+				status.textContent = "";
+				try {
+					const described = await faces.describe();
+					if (!described.ok) throw new Error(messageOf(described));
+					const llmView = viewOf(described.value.namespaces, LLM_NS);
+					const profile = providersOf(llmView)[route];
+					const models = isRecord(profile) && Array.isArray(profile.models) ? profile.models : [];
+					const op = modelCapabilityOp(route, models, getModelId(), gather());
+					if (op === undefined) { status.textContent = t("pt.integ.caps.unsaved"); return; }
+					const response = await faces.mutate(LLM_NS, [{ op: op.op, path: op.path, value: op.value }], llmView.revision);
+					if (!response.ok) throw new Error(messageOf(response));
+					status.className = "dspi_ok";
+					status.textContent = t("pt.integ.caps.saved");
+				} catch (error) {
+					status.className = "dspi_error";
+					status.textContent = t("pt.integ.caps.failed").replace("{message}", error instanceof Error ? error.message : String(error));
+				}
+			};
+
+			const levelsTitle = el("div", "dspi_fs_title", t("pt.integ.caps.levels"));
+			wrap.appendChild(levelsTitle);
+			wrap.appendChild(chipsRow);
+			wrap.appendChild(wireRow);
+			const imageRow = el("div", "dspi_row");
+			imageRow.appendChild(imageLabel);
+			imageRow.appendChild(status);
+			wrap.appendChild(imageRow);
+
+			for (const level of WIRE_LEVELS) {
+				const chip = el("button", "dspi_chip", level);
+				chip.type = "button";
+				const record = { box: { get checked() { return chip.classList.contains("dspi_chip_on"); } }, input: undefined };
+				chipInputs[level] = record;
+				chip.addEventListener("click", () => {
+					chip.classList.toggle("dspi_chip_on");
+					if (chip.classList.contains("dspi_chip_on")) {
+						const input = textInput("dspi_input", level, () => { write(); });
+						input.style.minWidth = "72px";
+						input.setAttribute("data-dspi-wire", level);
+						const label = el("span", "dspi_label", level + " " + t("pt.integ.caps.wire"));
+						const holder = el("span", "dspi_row");
+						holder.setAttribute("data-dspi-wire-row", level);
+						holder.appendChild(label);
+						holder.appendChild(input);
+						wireRow.appendChild(holder);
+						record.input = input;
+					} else {
+						const holder = wireRow.querySelector(`[data-dspi-wire-row="${level}"]`);
+						if (holder) holder.remove();
+						record.input = undefined;
+					}
+					write();
+				});
+				chipsRow.appendChild(chip);
+			}
+			imageBox.addEventListener("change", () => { write(); });
+
+			// Fill from the current settings document.
+			faces.describe().then((described) => {
+				if (!described.ok || !document.contains(wrap)) return;
+				const llmView = viewOf(described.value.namespaces, LLM_NS);
+				const profile = providersOf(llmView)[route];
+				const models = isRecord(profile) && Array.isArray(profile.models) ? profile.models.filter(isRecord) : [];
+				const entry = models.find((model) => model.id === getModelId());
+				if (entry === undefined) { status.textContent = t("pt.integ.caps.unsaved"); return; }
+				imageBox.checked = Array.isArray(entry.input) && entry.input.includes("image");
+				const efforts = isRecord(entry.reasoningEfforts) ? entry.reasoningEfforts : {};
+				for (const level of WIRE_LEVELS) {
+					if (efforts[level] === undefined) continue;
+					const chip = Array.from(chipsRow.querySelectorAll(".dspi_chip")).find((c) => c.textContent === level);
+					if (chip && !chip.classList.contains("dspi_chip_on")) chip.click();
+					const input = wireRow.querySelector(`[data-dspi-wire="${level}"]`);
+					if (input) input.value = typeof efforts[level] === "string" && efforts[level].length > 0 ? efforts[level] : level;
+				}
+				// chips clicked above each fired a write with partial state; rewrite once with the full picture
+				write();
+			}).catch(() => {});
+		}
+
+		/** Watch the page for official provider editor cards and enhance each once per render. */
+		function startIntegrator(faces) {
+			// Outside a browser (tests, SSR) there is nothing to integrate with.
+			if (typeof document === "undefined" || typeof MutationObserver === "undefined" || !document.body) return () => {};
+			let disposed = false;
+			let queued = false;
+			const scan = () => {
+				queued = false;
+				if (disposed || typeof document === "undefined") return;
+				for (const card of document.querySelectorAll('div[class*="_editor"]')) {
+					if (!isCustomPiAiCard(card)) continue;
+					const info = cardContext(card);
+					buildNetworkFieldset(card, faces, info);
+					buildDetectButton(card, faces, info);
+					if (info.kind === "edit") {
+						addRowCheckboxes(card);
+						enhanceAdvancedAreas(card, faces, info);
+					}
+				}
+			};
+			const schedule = () => {
+				if (queued || disposed) return;
+				queued = true;
+				Promise.resolve().then(scan);
+			};
+			const observer = new MutationObserver(schedule);
+			observer.observe(document.body, { childList: true, subtree: true });
+			scan();
+			return () => { disposed = true; observer.disconnect(); };
+		}
 		//#endregion
 
 		//#region dsh-provider-toolkit/Panel.tsx
 		const TLS_MODES = ["verify", "insecure", "ca"];
-
-		/**
-		 * One provider's editable review table, capability probes, and network
-		 * policy. The table is the contract: every number it shows is what the
-		 * confirmation will write, so a value the endpoint never disclosed can be
-		 * reviewed — and corrected — instead of being looked up by hand.
-		 */
-		function ProviderBlock(props) {
-			const {
-				provider, live, probe, verify, draft, defaults, edits, selected, reasoningChoice, busy, auto, allowUnverified, includeNew,
-				onProbe, onVerify, onConfirm, onDraft, onSave, onAllowUnverified, onIncludeNew, onEdit, onToggle, onReasoningChoice, t,
-			} = props;
-			const [open, setOpen] = useState(false);
-			const result = probe !== undefined && probe.result !== undefined ? probe.result : undefined;
-			const models = result !== undefined && Array.isArray(result.models) ? result.models : [];
-			const verified = verify !== undefined && isRecord(verify.result) && Array.isArray(verify.result.models) ? verify.result.models : undefined;
-			const rowEdits = isRecord(edits) ? edits : {};
-			const confirmedIds = result !== undefined && Array.isArray(result.configuredIds) ? result.configuredIds : [];
-			const configuredSet = new Set(confirmedIds);
-			const extraModels = models.filter((model) => !configuredSet.has(model.id));
-			const isChecked = (model) => (isRecord(selected) && typeof selected[model.id] === "boolean" ? selected[model.id] : configuredSet.has(model.id));
-			const checkedModels = models.filter(isChecked);
-
-			// The levels every checked-and-verified model accepted — the only
-			// safe defaults to enable for the whole route.
-			const checkedVerified = (verified ?? []).filter((model) => isRecord(model) && checkedModels.some((entry) => entry.id === model.id));
-			const levelNames = Array.isArray(defaults.levels) ? defaults.levels : SHIPPED_DEFAULTS.levels;
-			const commonAccepted = checkedVerified.length > 0
-				? levelNames.filter((level) => checkedVerified.every((model) => Array.isArray(model.accepted) && model.accepted.includes(level)))
-				: [];
-			const developerUnsupported = checkedVerified.filter((model) => isRecord(model.capabilities) && model.capabilities.developerRole === "unsupported");
-
-			const planned = checkedModels.length > 0 ? checkedModels.length * (3 + levelNames.length) : 0;
-
-			const policyChip = draft.skipProxy === true || draft.tls !== "verify"
-				? e("span", { className: styles.tag },
-					[draft.skipProxy === true ? t("pt.network.policyChip.direct") : "", draft.tls === "insecure" ? t("pt.network.policyChip.insecure") : "", draft.tls === "ca" ? t("pt.network.policyChip.ca") : ""]
-						.filter((part) => part.length > 0).join(" + "))
-				: null;
-
-			const header = e("div", { className: styles.row },
-				e("span", { className: styles.route }, provider.displayName),
-				provider.displayName !== provider.route ? e("span", { className: styles.dim }, provider.route) : null,
-				e("span", { className: styles.tag }, live ? t("pt.live") : t("pt.offline")),
-				policyChip,
-				provider.host.length > 0 ? e("span", { className: styles.dim }, provider.host) : null,
-				e("span", { className: styles.spacer }),
-				e("button", {
-					type: "button", className: styles.btn,
-					onClick: () => { setOpen(!open); },
-				}, open ? t("pt.collapse") : t("pt.expand")),
-			);
-
-			const summary = e("div", { className: styles.row },
-				e("span", { className: styles.dim },
-					Array.isArray(provider.declaredModels)
-						? t("pt.models.count").replace("{n}", String(provider.declaredModels.length))
-						: t("pt.models.catalog")),
-				provider.api.length > 0 ? e("span", { className: styles.tag }, provider.api) : null,
-				provider.baseURL.length > 0 ? e("span", { className: styles.dim }, provider.baseURL) : null,
-			);
-
-			// The automatic pass reports itself in the collapsed row too, because it
-			// runs with nobody having clicked anything.
-			const autoNote = !isRecord(auto) ? null
-				: auto.phase === "running" ? e("span", { className: styles.tag }, t("pt.auto.running").replace("{n}", String(auto.total)))
-					: auto.phase === "applying" ? e("span", { className: styles.tag }, t("pt.auto.applying"))
-						: auto.phase === "done" ? e("span", { className: styles.ok }, t("pt.auto.done").replace("{n}", String(auto.done)))
-							: e("span", { className: styles.error }, t("pt.auto.failed").replace("{message}", text(auto.message, "unknown")));
-
-			const tlsSelect = e("select", {
-				className: styles.select,
-				value: draft.tls,
-				onChange: (event) => { onDraft(provider.route, { tls: event.target.value }); },
-			}, e("option", { value: "verify" }, t("pt.network.tls.verify")),
-				e("option", { value: "insecure" }, t("pt.network.tls.insecure")),
-				e("option", { value: "ca" }, t("pt.network.tls.ca")));
-
-			const caFileField = draft.tls !== "ca" ? null : e("label", { className: styles.field },
-				t("pt.network.caFile"),
-				e("input", {
-					className: styles.input + " " + styles.wide, type: "text", value: draft.caFile,
-					placeholder: "C:\\\\certs\\\\corp-ca.pem",
-					onChange: (event) => { onDraft(provider.route, { caFile: event.target.value }); },
-				}),
-			);
-
-			// The network policy sits right under the summary, before any probing —
-			// it is what makes a proxy-blocked or self-signed endpoint answer at all.
-			const network = e("div", { className: styles.card },
-				e("div", { className: styles.row },
-					e("span", { className: styles.dim }, t("pt.network.title")),
-				),
-				e("div", { className: styles.row },
-					e("label", { className: styles.check },
-						e("input", {
-							type: "checkbox", checked: draft.skipProxy === true,
-							onChange: (event) => { onDraft(provider.route, { skipProxy: event.target.checked }); },
-						}),
-						t("pt.network.skipProxy"),
-					),
-					e("span", { className: styles.spacer }),
-					e("label", { className: styles.field }, t("pt.network.tls"), tlsSelect),
-				),
-				e("div", { className: styles.row },
-					e("label", { className: styles.field }, t("pt.network.host"),
-						e("input", {
-							className: styles.input, type: "text", value: draft.host,
-							onChange: (event) => { onDraft(provider.route, { host: event.target.value }); },
-						}),
-					),
-					caFileField,
-				),
-				e("div", { className: styles.row },
-					e("label", { className: styles.field }, t("pt.network.certFile"),
-						e("input", {
-							className: styles.input, type: "text", value: draft.certFile,
-							onChange: (event) => { onDraft(provider.route, { certFile: event.target.value }); },
-						}),
-					),
-					e("label", { className: styles.field }, t("pt.network.keyFile"),
-						e("input", {
-							className: styles.input, type: "text", value: draft.keyFile,
-							onChange: (event) => { onDraft(provider.route, { keyFile: event.target.value }); },
-						}),
-					),
-				),
-				e("div", { className: styles.row },
-					e("span", { className: styles.note }, t("pt.network.hint")),
-					e("span", { className: styles.spacer }),
-					draft.status === "saved" ? e("span", { className: styles.ok }, t("pt.network.saved")) : null,
-					draft.status === "error" ? e("span", { className: styles.error }, draft.message) : null,
-					e("button", {
-						type: "button", className: styles.btn,
-						disabled: draft.saving === true,
-						onClick: () => { onSave(provider.route); },
-					}, draft.saving === true ? t("pt.network.saving") : t("pt.network.save")),
-				),
-			);
-
-			if (!open) return e("div", { className: styles.card }, header, summary,
-				autoNote === null ? null : e("div", { className: styles.row }, autoNote));
-
-			const probeButton = e("button", {
-				type: "button", className: styles.btn,
-				disabled: busy.probing === true || provider.baseURL.length === 0,
-				onClick: () => { onProbe(provider.route); },
-			}, busy.probing === true ? t("pt.probing") : t("pt.probe"));
-
-			// The test button targets the checked rows only; verification costs
-			// real requests, so the count is announced before the user commits.
-			const verifyButton = e("button", {
-				type: "button", className: styles.btn,
-				disabled: busy.verifying === true || provider.baseURL.length === 0 || checkedModels.length === 0,
-				onClick: () => { onVerify(provider.route, checkedModels.map((model) => model.id)); },
-			}, busy.verifying === true ? t("pt.testing") : t("pt.testSelected"));
-
-			const verifyHint = e("span", { className: styles.note },
-				t("pt.test.hint").replace("{levels}", levelNames.join(" / ")),
-				planned > 0 ? ` ${t("pt.verify.requests").replace("{n}", String(planned))}` : "");
-
-			/** What one capacity cell shows: the user's edit, the endpoint, or the default. */
-			const capacityValue = (model, key) => {
-				const edited = isRecord(rowEdits[model.id]) ? rowEdits[model.id] : {};
-				const raw = edited[key];
-				if (typeof raw === "string" && raw.length > 0) return raw;
-				const disclosed = number(model[key]);
-				if (disclosed !== undefined) return String(disclosed);
-				return String(defaultCapacityFor(model.id, defaults)[key]);
-			};
-			const capacitySourceLabel = (model) => {
-				const edited = isRecord(rowEdits[model.id]) ? rowEdits[model.id] : {};
-				if (typeof edited.contextWindow === "string" || typeof edited.maxTokens === "string") return t("pt.table.edited");
-				const endpoint = model.contextSource === "endpoint" || model.maxTokensSource === "endpoint";
-				const fallback = model.contextSource !== "endpoint" || model.maxTokensSource !== "endpoint";
-				return [endpoint ? t("pt.table.endpoint") : "", fallback ? t("pt.table.default") : ""].filter((part) => part.length > 0).join(" / ");
-			};
-
-			const table = models.length === 0 ? null : e("table", { className: styles.table },
-				e("thead", null, e("tr", null,
-					e("th", null, ""),
-					e("th", null, t("pt.col.id")),
-					e("th", null, t("pt.col.context")),
-					e("th", null, t("pt.col.output")),
-					e("th", null, t("pt.col.reasoning")),
-					e("th", null, t("pt.col.source")),
-				)),
-				e("tbody", null, models.map((model) => {
-					const entry = verifiedById(verified, model.id);
-					const detection = effectiveDetection(model, entry);
-					const reasoning = formatReasoning(detection.reasoningEfforts);
-					const source = detection.reasoningSource === "metadata" ? t("pt.source.metadata")
-						: detection.reasoningSource === "heuristic" ? t("pt.source.heuristic") + t("pt.unverifiedTag")
-							: detection.reasoningSource === "verified" ? t("pt.source.verified") + t("pt.verifiedTag")
-								: detection.reasoningSource === "verified-none" ? t("pt.source.rejected")
-									: t("pt.source.none");
-					const reasoningCell = detection.reasoningEfforts === false ? t("pt.reasoning.none")
-						: detection.reasoningSource === "verified-none" ? t("pt.source.rejected")
-							: reasoning === undefined ? "—" : reasoning;
-					return e("tr", { key: model.id },
-						e("td", null, e("input", {
-							type: "checkbox", checked: isChecked(model),
-							onChange: (event) => { onToggle(provider.route, model.id, event.target.checked); },
-						})),
-						e("td", null,
-							text(model.name, model.id) === model.id ? model.id : `${model.name} (${model.id})`,
-							configuredSet.has(model.id) ? null : e("span", { className: styles.tag }, t("pt.table.new")),
-						),
-						e("td", null, e("input", {
-							className: styles.cell, type: "text", value: capacityValue(model, "contextWindow"),
-							onChange: (event) => { onEdit(provider.route, model.id, { contextWindow: event.target.value }); },
-						})),
-						e("td", null, e("input", {
-							className: styles.cell, type: "text", value: capacityValue(model, "maxTokens"),
-							onChange: (event) => { onEdit(provider.route, model.id, { maxTokens: event.target.value }); },
-						})),
-						e("td", null, reasoningCell),
-						e("td", null, source, e("span", { className: styles.dim }, ` · ${capacitySourceLabel(model)}`)),
-					);
-				})),
-			);
-
-			const verdictRows = [];
-			for (const model of verified ?? []) {
-				if (model.failure !== undefined) {
-					verdictRows.push(e("tr", { key: `${model.id}-failure` },
-						e("td", null, model.id),
-						e("td", null, "—"),
-						e("td", null, verdictLabel("inconclusive", t)),
-						e("td", null, model.failure.message),
-					));
-					continue;
-				}
-				for (const verdict of Array.isArray(model.verdicts) ? model.verdicts : []) {
-					verdictRows.push(e("tr", { key: `${model.id}-${verdict.level}` },
-						e("td", null, model.id),
-						e("td", null, verdict.level === "baseline" ? t("pt.verify.baseline") : verdict.level),
-						e("td", null, verdictLabel(verdict.status, t)),
-						e("td", null,
-							[verdict.message ?? "", verdict.status === "accepted"
-								? (verdict.sawReasoning ? t("pt.verify.sawReasoning") : t("pt.verify.noReasoning"))
-								: ""].filter((part) => part.length > 0).join(" · ")
-							|| "—"),
-					));
-				}
-			}
-			const verifyTable = verified === undefined || verdictRows.length === 0 ? null : e("table", { className: styles.table },
-				e("thead", null, e("tr", null,
-					e("th", null, t("pt.verify.col.model")),
-					e("th", null, t("pt.verify.col.level")),
-					e("th", null, t("pt.verify.col.verdict")),
-					e("th", null, t("pt.verify.col.detail")),
-				)),
-				e("tbody", null, verdictRows),
-			);
-
-			const capabilitySummary = verified === undefined ? null : e("div", { className: styles.note },
-				verified.map((model) => {
-					const accepted = Array.isArray(model.accepted) ? model.accepted : [];
-					const caps = isRecord(model.capabilities) ? model.capabilities : {};
-					const parts = [];
-					if (caps.imageInput === "supported") parts.push(t("pt.caps.image.yes"));
-					if (caps.imageInput === "unsupported") parts.push(t("pt.caps.image.no"));
-					if (caps.imageInput === "unknown") parts.push(t("pt.caps.image.unknown"));
-					if (caps.developerRole === "unsupported") parts.push(t("pt.caps.devRole.no"));
-					return e("div", { key: model.id },
-						`${model.id}：`,
-						model.failure !== undefined
-							? model.failure.message
-							: accepted.length > 0
-								? t("pt.verify.acceptedLevels").replace("{levels}", accepted.join(" / "))
-								: t("pt.verify.noAcceptedLevels"),
-						parts.length > 0 ? ` ${parts.join("；")}` : "",
-					);
-				}),
-			);
-			const allRejected = verified !== undefined && verified.length > 0 && verified.every((model) =>
-				Array.isArray(model.tested) && model.tested.length > 0
-				&& (Array.isArray(model.accepted) ? model.accepted.length === 0 : false));
-			const verifyNote = allRejected ? e("div", { className: styles.error }, t("pt.verify.allRejected")) : null;
-			const developerNote = developerUnsupported.length > 0
-				? e("div", { className: styles.note }, t("pt.caps.devRole.fix").replace("{n}", String(developerUnsupported.length)))
-				: null;
-
-			const notes = result !== undefined && Array.isArray(result.notes) && result.notes.length > 0
-				? e("div", null, result.notes.map((note, index) => e("div", { className: styles.note, key: String(index) }, note)))
-				: null;
-
-			const reasoningSelect = checkedVerified.length === 0 ? null : e("label", { className: styles.field },
-				t("pt.reasoningDefault"),
-				e("select", {
-					className: styles.select,
-					value: reasoningChoice,
-					onChange: (event) => { onReasoningChoice(provider.route, event.target.value); },
-				},
-					e("option", { value: "" }, t("pt.reasoningDefault.unset")),
-					commonAccepted.length === 0 ? e("option", { value: "", disabled: true }, t("pt.reasoningDefault.none")) : null,
-					commonAccepted.map((level) => e("option", { key: level, value: level }, level)),
-				),
-			);
-
-			// Bottom bar: the test button on the left, the write controls on the right.
-			const actionBar = result === undefined ? null : e("div", { className: styles.row },
-				probeButton, verifyButton,
-				e("span", { className: styles.spacer }),
-				e("label", { className: styles.check },
-					e("input", {
-						type: "checkbox", checked: allowUnverified === true,
-						onChange: (event) => { onAllowUnverified(event.target.checked); },
-					}),
-					t("pt.writeUnverified"),
-				),
-				e("label", { className: styles.check },
-					e("input", {
-						type: "checkbox", checked: includeNew === true,
-						onChange: (event) => { onIncludeNew(event.target.checked); },
-					}),
-					t("pt.includeNew").replace("{n}", String(extraModels.length)),
-				),
-				reasoningSelect,
-				busy.confirmed !== undefined ? e("span", { className: styles.ok }, t("pt.confirmed").replace("{n}", String(busy.confirmed))) : null,
-				e("button", {
-					type: "button", className: styles.btn + " " + styles.primary,
-					disabled: busy.confirming === true,
-					onClick: () => { onConfirm(provider.route); },
-				}, busy.confirming === true ? t("pt.applying") : t("pt.confirm")),
-			);
-
-			return e("div", { className: styles.card },
-				header, summary,
-				autoNote === null ? null : e("div", { className: styles.row }, autoNote),
-				network,
-				e("div", { className: styles.row },
-					probeButton, verifyButton,
-					e("span", { className: styles.spacer }),
-					probe !== undefined && probe.error !== undefined ? e("span", { className: styles.error }, probe.error) : null,
-					verify !== undefined && verify.error !== undefined ? e("span", { className: styles.error }, verify.error) : null,
-				),
-				e("div", { className: styles.row }, verifyHint),
-				table,
-				actionBar,
-				capabilitySummary, verifyTable, verifyNote, developerNote, notes,
-			);
-		}
 
 		/** The panel-level capacity defaults, listing filter, and automatic pass toggle. */
 		function DefaultsEditor(props) {
@@ -966,40 +1167,34 @@ window.__ModuleLoader__.load({
 			);
 		}
 
-		/** The Models footer seat: every provider, its detected capabilities, and its network policy. */
+				/**
+		 * The Models footer seat: the shared detection defaults and the automatic
+		 * capability pass. Provider-scoped controls (network policy, per-model
+		 * capabilities, the test button) live inside the official editor cards
+		 * through the integrator above, not here.
+		 */
 		function Panel(props) {
-			const { settings, callOverview, callProbe, callVerify, t } = props;
-			const [state, setState] = useState({ phase: "loading", view: undefined, overview: undefined, failure: undefined });
-			const [probes, setProbes] = useState({});
-			const [verifies, setVerifies] = useState({});
-			const [edits, setEdits] = useState({});
-			const [selected, setSelected] = useState({});
-			const [drafts, setDrafts] = useState({});
+			const { settings, callProbe, callVerify, t } = props;
+			const [state, setState] = useState({ phase: "loading", view: undefined, failure: undefined });
 			const [defaultsDraft, setDefaultsDraft] = useState({ contextWindow: "", maxTokens: "", exclude: "", autoCapabilities: true, saving: false, status: undefined, message: undefined, dirty: false });
-			const [busy, setBusy] = useState({});
-			const [allowUnverified, setAllowUnverified] = useState(false);
-			const [includeNew, setIncludeNew] = useState(false);
-			const [reasoningChoice, setReasoningChoice] = useState({});
 			const [autoState, setAutoState] = useState({});
 			const alive = useRef(true);
 			/** The configuration shape an automatic pass already ran for. */
 			const autoRan = useRef("");
 
 			const load = () => {
-				setState((current) => ({ ...current, phase: current.overview === undefined ? "loading" : current.phase }));
-				Promise.all([settings.describe(), callOverview()]).then(
-					([described, overview]) => {
+				settings.describe().then(
+					(described) => {
 						if (alive.current !== true) return;
 						if (!described.ok) {
-							setState({ phase: "error", view: undefined, overview: undefined, failure: messageOf(described) });
+							setState({ phase: "error", view: undefined, failure: messageOf(described) });
 							return;
 						}
-						const unwrapped = overviewOf(overview);
-						setState({ phase: "ready", view: described.value, overview: unwrapped.value, failure: unwrapped.failure });
+						setState({ phase: "ready", view: described.value, failure: undefined });
 					},
 					(error) => {
 						if (alive.current !== true) return;
-						setState({ phase: "error", view: undefined, overview: undefined, failure: error instanceof Error ? error.message : String(error) });
+						setState({ phase: "error", view: undefined, failure: error instanceof Error ? error.message : String(error) });
 					},
 				);
 			};
@@ -1016,41 +1211,6 @@ window.__ModuleLoader__.load({
 			}, []);
 
 			useEffect(() => {
-				const view = state.view;
-				// First mount has no view yet: describe() has not resolved, so
-				// there is nothing to sync drafts from. Reading `view.namespaces`
-				// here crashes the whole slot entry before the panel ever shows.
-				if (view === undefined) return;
-				const routes = providersOf(viewOf(view.namespaces, LLM_NS));
-				setDrafts((current) => {
-					const next = {};
-					for (const route of Object.keys(routes)) {
-						// A route already being edited keeps its draft: a document update
-						// from elsewhere must not discard what the user has typed.
-						if (isRecord(current[route]) && current[route].dirty === true) {
-							next[route] = current[route];
-							continue;
-						}
-						const policy = policyOf(viewOf(view.namespaces, TOOLKIT_NS), route);
-						const provider = routes[route];
-						const baseURL = text(isRecord(provider) ? provider.baseURL : undefined, "");
-						next[route] = {
-							host: text(isRecord(policy) ? policy.host : undefined, baseURL.replace(/^https?:\/\//, "").replace(/[/:].*$/, "")),
-							skipProxy: isRecord(policy) && policy.skipProxy === true,
-							tls: isRecord(policy) && TLS_MODES.includes(policy.tls) ? policy.tls : "verify",
-							caFile: text(isRecord(policy) ? policy.caFile : undefined, ""),
-							caPem: text(isRecord(policy) ? policy.caPem : undefined, ""),
-							certFile: text(isRecord(policy) ? policy.certFile : undefined, ""),
-							keyFile: text(isRecord(policy) ? policy.keyFile : undefined, ""),
-							saving: false,
-							dirty: false,
-						};
-					}
-					return next;
-				});
-			}, [state.view]);
-
-			useEffect(() => {
 				if (defaultsDraft.dirty === true) return;
 				const toolkit = viewOf(state.view === undefined ? undefined : state.view.namespaces, TOOLKIT_NS);
 				const effective = normalizeDefaults(isRecord(toolkit) && isRecord(toolkit.value) ? toolkit.value.defaults : undefined);
@@ -1062,27 +1222,6 @@ window.__ModuleLoader__.load({
 					autoCapabilities: effective.autoCapabilities,
 				}));
 			}, [state.view]);
-
-			const onDraft = (route, patch) => {
-				setDrafts((current) => ({ ...current, [route]: { ...(current[route] ?? {}), ...patch, dirty: true, status: undefined, message: undefined } }));
-			};
-
-			const onEdit = (route, modelId, patch) => {
-				setEdits((current) => ({
-					...current,
-					[route]: { ...(current[route] ?? {}), [modelId]: { ...((current[route] ?? {})[modelId] ?? {}), ...patch } },
-				}));
-				setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), confirmed: undefined } }));
-			};
-
-			const onToggle = (route, modelId, checked) => {
-				setSelected((current) => ({ ...current, [route]: { ...(current[route] ?? {}), [modelId]: checked } }));
-				setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), confirmed: undefined } }));
-			};
-
-			const onReasoningChoice = (route, level) => {
-				setReasoningChoice((current) => ({ ...current, [route]: level }));
-			};
 
 			/**
 			 * The configuration shape an automatic capability pass keys on: the
@@ -1099,11 +1238,12 @@ window.__ModuleLoader__.load({
 				if (compat !== undefined) delete compat.supportsDeveloperRole;
 				return JSON.stringify({
 					api: text(profile.api, ""),
-					compat: compat ?? null,
+					compat,
 					models: (Array.isArray(profile.models) ? profile.models : [])
 						.filter(isRecord)
 						.map((model) => text(model.id, ""))
-						.filter((id) => id.length > 0),
+						.filter((id) => id.length > 0)
+						.sort(),
 				});
 			};
 
@@ -1113,7 +1253,7 @@ window.__ModuleLoader__.load({
 			 * yet, then write what was measured — reasoning levels, image input,
 			 * the developer-role fix, a default thinking level, and any missing
 			 * capacity. Everything it writes is additive, so it is safe to run
-			 * without a click; the panel's own buttons remain for corrections.
+			 * without a click; the in-card button remains for corrections.
 			 */
 			const runAutoPass = async (view) => {
 				const namespaces = view.namespaces;
@@ -1146,43 +1286,14 @@ window.__ModuleLoader__.load({
 							continue;
 						}
 						const probeValue = probeResponse.value.value;
-						setProbes((current) => ({ ...current, [route]: { result: probeValue } }));
 						const verifyResponse = await callVerify(route, batch);
 						if (!verifyResponse.ok || !isRecord(verifyResponse.value) || verifyResponse.value.ok !== true) {
 							setAutoState((current) => ({ ...current, [route]: { phase: "failed", message: messageOf(verifyResponse) } }));
 							continue;
 						}
 						const verifyValue = verifyResponse.value.value;
-						setVerifies((current) => ({ ...current, [route]: { result: verifyValue } }));
 						setAutoState((current) => ({ ...current, [route]: { phase: "applying", done: batch.length, total: batch.length } }));
-						const verified = Object.fromEntries((verifyValue.models ?? [])
-							.filter((model) => isRecord(model) && typeof model.id === "string")
-							.map((model) => [model.id, model]));
-						const rows = mergeModels(configured, Array.isArray(probeValue.models) ? probeValue.models : [], false, {
-							verified,
-							allowUnverified: false,
-							edits: {},
-							defaults: defaultsOf(namespaces, { result: probeValue }),
-							conservative: true,
-						}).map(sanitize);
-						const ops = [];
-						if (JSON.stringify(rows) !== JSON.stringify(configured.map(sanitize))) {
-							ops.push({ op: "set", path: ["providers", route, "models"], value: rows });
-						}
-						const measured = (verifyValue.models ?? []).filter(isRecord);
-						if (measured.some((model) => isRecord(model.capabilities) && model.capabilities.developerRole === "unsupported")) {
-							const currentCompat = isRecord(profile.compat) ? profile.compat : {};
-							if (currentCompat.supportsDeveloperRole !== false) {
-								ops.push({ op: "set", path: ["providers", route, "compat", "supportsDeveloperRole"], value: false });
-							}
-						}
-						// Enable thinking by default only where every measured model
-						// accepted the same level, and only when the route has no
-						// explicit default the user already chose.
-						if (profile.reasoning === undefined && effective.levels.length > 0 && measured.length > 0) {
-							const common = effective.levels.filter((level) => measured.every((model) => Array.isArray(model.accepted) && model.accepted.includes(level)));
-							if (common.length > 0) ops.push({ op: "set", path: ["providers", route, "reasoning"], value: common[common.length - 1] });
-						}
+						const ops = capabilityWriteOps(route, profile, isRecord(probeValue) ? probeValue.models : [], verifyValue, defaultsOf(namespaces, { result: probeValue }));
 						if (ops.length > 0) {
 							const written = await settings.mutate(LLM_NS, ops, llmView.revision);
 							if (!written.ok) {
@@ -1192,7 +1303,7 @@ window.__ModuleLoader__.load({
 						}
 						// Remember what this shape measured, so the next page open is free.
 						const entry = { ...cached };
-						for (const model of measured) {
+						for (const model of (Array.isArray(verifyValue.models) ? verifyValue.models : []).filter(isRecord)) {
 							if (typeof model.id !== "string") continue;
 							entry[model.id] = {
 								signature,
@@ -1218,158 +1329,6 @@ window.__ModuleLoader__.load({
 				if (state.phase !== "ready" || state.view === undefined) return;
 				runAutoPass(state.view);
 			}, [state.view]);
-
-			/** Persist one provider's outbound network policy. */
-			const onSave = (route) => {
-				const view = state.view;
-				const toolkitView = viewOf(view === undefined ? undefined : view.namespaces, TOOLKIT_NS);
-				const draft = drafts[route];
-				if (toolkitView === undefined || draft === undefined) return;
-				const value = sanitize({
-					host: draft.host,
-					skipProxy: draft.skipProxy === true ? true : undefined,
-					tls: draft.tls === "verify" ? undefined : draft.tls,
-					caFile: draft.caFile,
-					caPem: draft.caPem,
-					certFile: draft.certFile,
-					keyFile: draft.keyFile,
-				});
-				setDrafts((current) => ({ ...current, [route]: { ...(current[route] ?? {}), saving: true, status: undefined, message: undefined } }));
-				const op = Object.keys(value).length === 0
-					? { op: "unset", path: ["network", route] }
-					: { op: "set", path: ["network", route], value };
-				settings.mutate(TOOLKIT_NS, [op], toolkitView.revision).then(
-					(response) => {
-						if (alive.current !== true) return;
-						if (response.ok) {
-							setDrafts((current) => ({ ...current, [route]: { ...(current[route] ?? {}), saving: false, dirty: false, status: "saved" } }));
-							load();
-							return;
-						}
-						const message = response.error !== undefined && response.error.code === "settings/conflict"
-							? t("pt.conflict")
-							: t("pt.failed").replace("{message}", messageOf(response));
-						setDrafts((current) => ({ ...current, [route]: { ...(current[route] ?? {}), saving: false, status: "error", message } }));
-						load();
-					},
-					(error) => {
-						if (alive.current !== true) return;
-						setDrafts((current) => ({ ...current, [route]: { ...(current[route] ?? {}), saving: false, status: "error", message: error instanceof Error ? error.message : String(error) } }));
-					},
-				);
-			};
-
-			const onProbe = (route) => {
-				setProbes((current) => ({ ...current, [route]: { ...(current[route] ?? {}), error: undefined } }));
-				setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), probing: true, confirmed: undefined } }));
-				callProbe(route).then(
-					(response) => {
-						if (alive.current !== true) return;
-						setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), probing: false } }));
-						if (response.ok && response.value !== undefined && response.value.ok === true) {
-							setProbes((current) => ({ ...current, [route]: { result: response.value.value } }));
-							return;
-						}
-						const message = response.ok && response.value !== undefined && response.value.error !== undefined
-							? response.value.error.message
-							: messageOf(response);
-						setProbes((current) => ({ ...current, [route]: { error: message } }));
-					},
-					(error) => {
-						if (alive.current !== true) return;
-						setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), probing: false } }));
-						setProbes((current) => ({ ...current, [route]: { error: error instanceof Error ? error.message : String(error) } }));
-					},
-				);
-			};
-
-			/**
-			 * Ask the host to test the route's checked models against the real
-			 * endpoint: reasoning levels, the developer role, and image input. The
-			 * reply replaces the listing's inference for those models, so only
-			 * accepted facts can be written.
-			 */
-			const onVerify = (route, models) => {
-				setVerifies((current) => ({ ...current, [route]: { ...(current[route] ?? {}), error: undefined } }));
-				setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), verifying: true, confirmed: undefined } }));
-				callVerify(route, models).then(
-					(response) => {
-						if (alive.current !== true) return;
-						setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), verifying: false } }));
-						if (response.ok && response.value !== undefined && response.value.ok === true) {
-							setVerifies((current) => ({ ...current, [route]: { result: response.value.value } }));
-							return;
-						}
-						const message = response.ok && response.value !== undefined && response.value.error !== undefined
-							? response.value.error.message
-							: messageOf(response);
-						setVerifies((current) => ({ ...current, [route]: { error: t("pt.verify.failed").replace("{message}", message) } }));
-					},
-					(error) => {
-						if (alive.current !== true) return;
-						setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), verifying: false } }));
-						setVerifies((current) => ({ ...current, [route]: { error: t("pt.verify.failed").replace("{message}", error instanceof Error ? error.message : String(error)) } }));
-					},
-				);
-			};
-
-			/**
-			 * The single confirmation: write exactly what the table shows — every
-			 * reviewed capacity, every verified level set, each model's measured
-			 * capabilities, the chosen reasoning default, and (when asked) the
-			 * route's other chat models.
-			 */
-			const onConfirm = (route) => {
-				const view = state.view;
-				const llmView = viewOf(view === undefined ? undefined : view.namespaces, LLM_NS);
-				const probe = probes[route];
-				if (llmView === undefined || probe === undefined || probe.result === undefined) return;
-				const profile = providersOf(llmView)[route];
-				const configured = isRecord(profile) && Array.isArray(profile.models) ? profile.models.filter(isRecord) : [];
-				const verify = verifies[route] !== undefined && verifies[route].result !== undefined ? verifies[route].result.models : undefined;
-				const verified = Array.isArray(verify)
-					? Object.fromEntries(verify
-						.filter((model) => isRecord(model) && typeof model.id === "string")
-						.map((model) => [model.id, model]))
-					: {};
-				const rows = mergeModels(configured, probe.result.models ?? [], includeNew, {
-					verified,
-					allowUnverified,
-					edits: edits[route] ?? {},
-					defaults: defaultsOf(view.namespaces, probe),
-				}).map(sanitize);
-				const ops = [{ op: "set", path: ["providers", route, "models"], value: rows }];
-				// Any verified model that refuses the developer role breaks every
-				// reasoning request; write the compat fix once for the whole route.
-				if (Array.isArray(verify) && verify.some((model) => isRecord(model) && isRecord(model.capabilities) && model.capabilities.developerRole === "unsupported")) {
-					ops.push({ op: "set", path: ["providers", route, "compat", "supportsDeveloperRole"], value: false });
-				}
-				const choice = text(reasoningChoice[route], "");
-				if (choice !== "") {
-					ops.push({ op: "set", path: ["providers", route, "reasoning"], value: choice });
-				}
-				setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), confirming: true, confirmed: undefined } }));
-				settings.mutate(LLM_NS, ops, llmView.revision).then(
-					(response) => {
-						if (alive.current !== true) return;
-						if (response.ok) {
-							setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), confirming: false, confirmed: rows.length } }));
-							setEdits((current) => ({ ...current, [route]: {} }));
-							load();
-							return;
-						}
-						const message = response.error !== undefined && response.error.code === "settings/conflict"
-							? t("pt.conflict")
-							: t("pt.failed").replace("{message}", messageOf(response));
-						setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), confirming: false, error: message } }));
-						load();
-					},
-					(error) => {
-						if (alive.current !== true) return;
-						setBusy((current) => ({ ...current, [route]: { ...(current[route] ?? {}), confirming: false, error: error instanceof Error ? error.message : String(error) } }));
-					},
-				);
-			};
 
 			const onSaveDefaults = () => {
 				const view = state.view;
@@ -1420,58 +1379,23 @@ window.__ModuleLoader__.load({
 					e("div", { className: styles.error }, t("pt.failed").replace("{message}", text(state.failure, "unknown"))));
 			}
 
-			const view = state.view;
-			const llmView = viewOf(view.namespaces, LLM_NS);
-			const fromSettings = providersOf(llmView);
-			const live = new Set((state.overview !== undefined && Array.isArray(state.overview.live) ? state.overview.live : []).map((entry) => entry.id));
-			const rows = state.overview !== undefined && Array.isArray(state.overview.providers) && state.overview.providers.length > 0
-				? state.overview.providers
-				: Object.keys(fromSettings).map((route) => ({
-					route,
-					displayName: text(fromSettings[route].displayName, route),
-					api: text(fromSettings[route].api, ""),
-					baseURL: text(fromSettings[route].baseURL, ""),
-					host: "",
-					apiKeyEnv: "",
-					declaredModels: Array.isArray(fromSettings[route].models) ? fromSettings[route].models : undefined,
-				}));
-
-			const writable = view.writable !== false;
-			const body = rows.length === 0
-				? e("div", { className: styles.sub }, t("pt.empty"))
-				: rows.map((provider) => e(ProviderBlock, {
-					key: provider.route,
-					provider,
-					live: live.has(provider.route),
-					probe: probes[provider.route],
-					verify: verifies[provider.route],
-					draft: drafts[provider.route] ?? { host: "", skipProxy: false, tls: "verify", caFile: "", caPem: "", certFile: "", keyFile: "" },
-					defaults: defaultsOf(view.namespaces, probes[provider.route]),
-					edits: edits[provider.route] ?? {},
-					selected: selected[provider.route] ?? {},
-					reasoningChoice: text(reasoningChoice[provider.route], ""),
-					busy: busy[provider.route] ?? {},
-					auto: autoState[provider.route],
-					allowUnverified,
-					includeNew,
-					onProbe, onVerify, onConfirm, onDraft, onSave, t,
-					onAllowUnverified: setAllowUnverified,
-					onIncludeNew: setIncludeNew,
-					onEdit,
-					onToggle,
-					onReasoningChoice,
-				}));
-
+			const autoEntries = Object.entries(autoState);
 			return e("div", { className: styles.root }, head, description,
-				state.failure === undefined ? null : e("div", { className: styles.error }, state.failure),
-				writable ? null : e("div", { className: styles.error }, t("pt.readOnly")),
-				body,
 				e(DefaultsEditor, {
 					draft: defaultsDraft,
 					onChange: (patch) => { setDefaultsDraft((current) => ({ ...current, ...patch, dirty: true, status: undefined, message: undefined })); },
 					onSave: onSaveDefaults,
 					t,
 				}),
+				autoEntries.length === 0 ? null : e("div", { className: styles.card },
+					autoEntries.map(([route, auto]) => e("div", { key: route, className: styles.row },
+						e("span", { className: styles.route }, route),
+						auto.phase === "running" ? e("span", { className: styles.tag }, t("pt.auto.running").replace("{n}", String(auto.total)))
+							: auto.phase === "applying" ? e("span", { className: styles.tag }, t("pt.auto.applying"))
+								: auto.phase === "done" ? e("span", { className: styles.ok }, t("pt.auto.done").replace("{n}", String(auto.done)))
+									: e("span", { className: styles.error }, t("pt.auto.failed").replace("{message}", text(auto.message, "unknown"))),
+					)),
+				),
 			);
 		}
 		//#endregion
@@ -1493,7 +1417,7 @@ window.__ModuleLoader__.load({
 			const rpc = (endpoint, args) => ctx.connection.rpc.call("/api", endpoint, { args }, undefined);
 			const callOverview = () => rpc("providerToolkit/overview", {});
 			const callProbe = (route) => rpc("providerToolkit/probe", { request: { route } });
-			const callVerify = (route) => rpc("providerToolkit/verifyReasoning", { request: { route } });
+			const callVerify = (route, models) => rpc("providerToolkit/verifyReasoning", { request: models === undefined ? { route } : { route, models } });
 			const onDocumentUpdated = (listener) => {
 				try {
 					return ctx.remote.$on("settings/document-updated", (ns) => {
@@ -1503,6 +1427,22 @@ window.__ModuleLoader__.load({
 					return () => {};
 				}
 			};
+
+			// The official editor cards carry the provider-scoped controls; the
+			// locale service is slot-bound, so the integrator picks a dictionary
+			// from the document language itself.
+			const integratorFaces = {
+				describe: () => settings.describe(),
+				mutate: (ns, ops, revision) => settings.mutate(ns, ops, revision),
+				callProbe,
+				callVerify,
+				onDocumentUpdated,
+				t: (key) => {
+					const lang = typeof document !== "undefined" && /^zh/i.test(document.documentElement.lang || "") ? zh : en;
+					return lang[key] ?? en[key] ?? key;
+				},
+			};
+			ctx.effect(() => startIntegrator(integratorFaces), "dsh-provider-toolkit: models-card integration");
 
 			ctx.slots.inject("settings.models.footer", () => ctx.slots.register({
 				name: "settings.models.footer",
@@ -1532,6 +1472,10 @@ window.__ModuleLoader__.load({
 			isExcludedModel,
 			toPositive,
 			overviewOf,
+			networkPolicyOp,
+			capabilityWriteOps,
+			modelCapabilityOp,
+			WIRE_LEVELS,
 			SHIPPED_DEFAULTS,
 		};
 		return module.exports;
